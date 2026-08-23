@@ -1,0 +1,539 @@
+<!doctype html>
+<html lang="{{ request.locale.iso_code }}">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+    <meta name="theme-color" content="#1e3a6e">
+    {% assign salt_route = request.path %}
+    {% assign salt_seo_title = page_title | default: shop.name %}
+    {% assign salt_seo_description = page_description | default: shop.description | default: 'Shop curated cookware, gifts, apparel, and everyday essentials from Future Light Store.' %}
+    {% assign salt_seo_robots = 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1' %}
+    {% assign salt_seo_canonical = canonical_url | split: '?' | first %}
+    {% assign salt_custom_canonical = false %}
+    {% capture salt_content_for_header %}{{ content_for_header }}{% endcapture %}
+
+    {% if salt_route == '/' %}
+      {% assign salt_seo_title = 'Future Light Store | Curated essentials and giftable finds' %}
+      {% assign salt_seo_description = 'Shop practical, giftable finds across cookware, home, beauty, apparel, gadgets, and everyday essentials.' %}
+      {% assign salt_seo_canonical = 'https://' | append: request.host | append: '/' %}
+      {% assign salt_custom_canonical = true %}
+    {% elsif salt_route == '/pages/finance' or salt_route == '/apps:finance' or salt_route == '/apps/finance' %}
+      {% assign salt_seo_title = 'SALT Finance | Private Operations' %}
+      {% assign salt_seo_description = 'Private SALT operations workspace.' %}
+      {% assign salt_seo_robots = 'noindex,follow' %}
+    {% elsif salt_route == '/shop' %}
+      {% assign salt_seo_title = 'Shop All Products | Future Light Store' %}
+      {% assign salt_seo_description = 'Browse the live SALT catalog of cookware, gifts, apparel, beauty, gadgets, and everyday essentials.' %}
+      {% assign salt_seo_canonical = 'https://' | append: request.host | append: '/shop' %}
+      {% assign salt_custom_canonical = true %}
+    {% elsif salt_route == '/search' %}
+      {% assign salt_seo_title = 'Search Future Light Store' %}
+      {% assign salt_seo_description = 'Search the live SALT catalog for products, collections, and everyday essentials.' %}
+      {% assign salt_seo_robots = 'noindex,follow' %}
+      {% assign salt_seo_canonical = 'https://' | append: request.host | append: '/search' %}
+      {% assign salt_custom_canonical = true %}
+    {% elsif salt_route contains '/collections/' %}
+      {% assign salt_seo_canonical = 'https://' | append: request.host | append: salt_route %}
+      {% assign salt_custom_canonical = true %}
+    {% elsif salt_route == '/cart' or salt_route == '/wishlist' or salt_route == '/recently-viewed' %}
+      {% assign salt_seo_robots = 'noindex,follow' %}
+    {% elsif salt_route == '/pages/wishlist' %}
+      {% assign salt_seo_title = 'Wishlist | Future Light Store' %}
+      {% assign salt_seo_description = 'Save SALT products for later and keep track of items you love.' %}
+      {% assign salt_seo_robots = 'noindex,follow' %}
+    {% elsif salt_route == '/pages/resources' %}
+      {% assign salt_seo_title = 'Resource Hub | Future Light Store' %}
+      {% assign salt_seo_description = 'Practical guides that help shoppers discover the right SALT products, collections, and everyday solutions.' %}
+    {% elsif salt_route == '/pages/faq' %}
+      {% assign salt_seo_title = 'FAQ | Future Light Store' %}
+      {% assign salt_seo_description = 'Quick answers about SALT ordering, shipping, returns, and product support.' %}
+    {% elsif salt_route == '/pages/contact-us' %}
+      {% assign salt_seo_title = 'Contact Support | Future Light Store' %}
+      {% assign salt_seo_description = 'Reach the SALT support team for delivery questions, product advice, returns, or order help.' %}
+    {% elsif salt_route == '/pages/about-us' %}
+      {% assign salt_seo_title = 'About Future Light Store' %}
+      {% assign salt_seo_description = 'Learn how SALT makes practical products easy to discover, save, and buy.' %}
+    {% elsif salt_route == '/pages/blog' %}
+      {% assign salt_seo_title = 'SALT Journal | Future Light Store' %}
+      {% assign salt_seo_description = 'Fresh stories, product education, and practical ideas from SALT.' %}
+    {% elsif salt_route == '/pages/affiliate-program' %}
+      {% assign salt_seo_title = 'Affiliate Program | Future Light Store' %}
+      {% assign salt_seo_description = 'Learn how to partner with SALT and share useful products with your audience.' %}
+    {% elsif salt_route == '/pages/mission-vision' %}
+      {% assign salt_seo_title = 'Mission & Vision | Future Light Store' %}
+      {% assign salt_seo_description = 'Learn what SALT is building and how we make everyday shopping easier.' %}
+    {% elsif salt_route == '/pages/wholesale-inquiries' %}
+      {% assign salt_seo_title = 'Wholesale Inquiries | Future Light Store' %}
+      {% assign salt_seo_description = 'Contact SALT about wholesale, gifting, and business purchasing opportunities.' %}
+    {% elsif salt_route == '/pages/terms-conditions' %}
+      {% assign salt_seo_title = 'Terms & Conditions | Future Light Store' %}
+      {% assign salt_seo_description = 'Review the terms that apply when using the Future Light Store.' %}
+    {% elsif salt_route == '/pages/track-order' %}
+      {% assign salt_seo_title = 'Track Order | Future Light Store' %}
+      {% assign salt_seo_description = 'Use the secure order portal to review your order status and delivery details.' %}
+      {% assign salt_seo_robots = 'noindex,follow' %}
+    {% elsif salt_route == '/pages/recently-viewed' %}
+      {% assign salt_seo_title = 'Recently Viewed | Future Light Store' %}
+      {% assign salt_seo_description = 'Pick up where you left off with products viewed on this device.' %}
+      {% assign salt_seo_robots = 'noindex,follow' %}
+    {% elsif request.page_type == '404' %}
+      {% assign salt_seo_robots = 'noindex,follow' %}
+    {% endif %}
+
+    {% if request.page_type == 'product' and product %}
+      {%- comment -%}
+        Shopify's native SEO fields belong to the product, but the selected
+        variant is available during Liquid rendering. Include its identity in
+        the request-time metadata so a backpack/bottle/lunch-box variant does
+        not inherit an unrelated product-only title or description.
+      {%- endcomment -%}
+      {% assign salt_selected_variant = product.selected_or_first_available_variant %}
+      {% assign salt_variant_label = salt_selected_variant.title | default: '' | strip %}
+      {% unless salt_variant_label == blank or salt_variant_label == 'Default Title' %}
+        {% assign salt_seo_title = product.title | append: ' - ' | append: salt_variant_label | append: ' | Future Light Store' %}
+        {% assign salt_variant_description = product.description | strip_html | strip_newlines | truncate: 115 %}
+        {% assign salt_seo_description = salt_variant_description | append: ' Selected option: ' | append: salt_variant_label | append: '.' %}
+      {% endunless %}
+    {% endif %}
+
+    <title>{{ salt_seo_title | escape }}</title>
+    {% if salt_seo_description != blank %}
+      <meta name="description" content="{{ salt_seo_description | strip_html | strip_newlines | escape }}">
+    {% endif %}
+    <meta name="robots" content="{{ salt_seo_robots }}">
+    <meta name="googlebot" content="{{ salt_seo_robots }}">
+    <meta property="og:title" content="{{ salt_seo_title | escape }}">
+    <meta property="og:description" content="{{ salt_seo_description | strip_html | strip_newlines | escape }}">
+    {% if request.page_type == 'product' and salt_selected_variant and salt_selected_variant.featured_image %}
+      <meta property="og:image" content="{{ salt_selected_variant.featured_image | image_url: width: 1200 | escape }}">
+    {% endif %}
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="{{ shop.name | escape }}">
+    {% if salt_custom_canonical %}
+      <link rel="canonical" href="{{ salt_seo_canonical | escape }}">
+    {% endif %}
+    <script>
+      (function () {
+        var path = window.location.pathname;
+        var query = window.location.search;
+        var hasQuery = query.length > 1;
+        var isFinance = path === '/pages/finance' || path === '/apps:finance' || path === '/apps/finance' || (path === '/' && /(?:^|&)finance=1(?:&|$)/.test(query.slice(1)));
+        var isQuerySurface = path === '/' || path === '/shop' || path === '/search';
+        if (!isFinance && !(hasQuery && isQuerySurface)) return;
+
+        function ensureMeta(name, content) {
+          var tag = document.querySelector('meta[name="' + name + '"]');
+          if (!tag) {
+            tag = document.createElement('meta');
+            tag.setAttribute('name', name);
+            document.head.appendChild(tag);
+          }
+          tag.setAttribute('content', content);
+        }
+
+        ensureMeta('robots', 'noindex,follow');
+        ensureMeta('googlebot', 'noindex,follow');
+
+        var canonicalPath = path;
+        if (path === '/shop' && /(?:^|&)resource=hub(?:&|$)/.test(query.slice(1))) {
+          canonicalPath = '/pages/resources';
+        } else if (path !== '/pages/finance' && path !== '/apps:finance' && path !== '/apps/finance') {
+          canonicalPath = path || '/';
+        }
+
+        var canonical = document.querySelector('link[rel="canonical"]');
+        if (!canonical) {
+          canonical = document.createElement('link');
+          canonical.setAttribute('rel', 'canonical');
+          document.head.appendChild(canonical);
+        }
+        canonical.setAttribute('href', window.location.origin + canonicalPath);
+      })();
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": {{ shop.name | json }},
+        "url": "https://{{ request.host }}/",
+        "logo": {{ 'future-light-logo.svg' | asset_url | json }}
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": {{ shop.name | json }},
+        "url": "https://{{ request.host }}/",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://{{ request.host }}/shop?q={search_term_string}",
+          "query-input": "required name=search_term_string"
+        }
+      }
+    </script>
+    <link rel="icon" type="image/svg+xml" href="{{ 'favicon.svg' | asset_url }}">
+    <link rel="preconnect" href="https://cdn.shopify.com" crossorigin>
+    {{ 'salt-app.css' | asset_url | stylesheet_tag }}
+    {% if "salt-entry-86f1808fc4d5.js" != blank %}
+      <link rel="modulepreload" href="{{ "salt-entry-86f1808fc4d5.js" | asset_url | split: '?' | first }}" fetchpriority="high">
+    {% endif %}
+    {% if request.page_type == 'product' and "" != blank %}
+      <link rel="modulepreload" href="{{ "" | asset_url | split: '?' | first }}" fetchpriority="high">
+    {% elsif request.page_type == 'index' and "" != blank %}
+      <link rel="modulepreload" href="{{ "" | asset_url | split: '?' | first }}">
+    {% endif %}
+    {% if request.page_type == 'product' %}
+      {%- comment -%}
+        The React PDP selects the live featured image and its responsive URL after
+        the product payload arrives. Preloading product.featured_image here can
+        fetch a different CDN variant and creates a wasted-preload warning.
+      {%- endcomment -%}
+      <link rel="preconnect" href="https://magecomp.us" crossorigin>
+      <link rel="dns-prefetch" href="//magecomp.us">
+      <script>
+        (function () {
+          // LimitQtyHelper is injected by a Shopify app with defer, but its
+          // origin can take more than a second to respond. Keep the quantity
+          // feature and its execution order independent from DOM readiness so
+          // the React product page never waits on that third-party server.
+          function isLimitQtyHelper(node) {
+            if (!(node instanceof HTMLScriptElement) || !node.src) return false;
+
+            try {
+              var url = new URL(node.src, window.location.href);
+              return url.hostname === 'magecomp.us' && url.pathname === '/js/LimitQtyHelper.js';
+            } catch (error) {
+              return false;
+            }
+          }
+
+          function makeNonBlocking(node) {
+            if (isLimitQtyHelper(node)) {
+              node.async = true;
+              node.defer = false;
+              node.setAttribute('data-salt-nonblocking', 'true');
+            }
+
+            if (!node || !node.querySelectorAll) return;
+            node.querySelectorAll('script[src]').forEach(function (script) {
+              if (!isLimitQtyHelper(script)) return;
+              script.async = true;
+              script.defer = false;
+              script.setAttribute('data-salt-nonblocking', 'true');
+            });
+          }
+
+          var observer = new MutationObserver(function (records) {
+            records.forEach(function (record) {
+              record.addedNodes.forEach(makeNonBlocking);
+            });
+          });
+
+          observer.observe(document.documentElement, { childList: true, subtree: true });
+          document.addEventListener('DOMContentLoaded', function () {
+            observer.disconnect();
+          }, { once: true });
+        })();
+      </script>
+    {% endif %}
+    <script>
+      (function () {
+        var selector = '#svelte-bundle-widget, #pumper_bundle_svelte';
+        var pending = /^\/products?(?:\/|$)/.test(window.location.pathname);
+        var observer = null;
+        var originalDisplays = new WeakMap();
+
+        function rememberAndHide(element) {
+          if (!(element instanceof HTMLElement)) return;
+
+          if (!originalDisplays.has(element)) {
+            originalDisplays.set(element, {
+              value: element.style.getPropertyValue('display'),
+              priority: element.style.getPropertyPriority('display'),
+            });
+          }
+
+          if (
+            element.style.getPropertyValue('display') !== 'none' ||
+            element.style.getPropertyPriority('display') !== 'important'
+          ) {
+            element.style.setProperty('display', 'none', 'important');
+          }
+        }
+
+        function hideWidgets(scope) {
+          if (!pending) return;
+
+          if (scope && scope.nodeType === 1 && scope.matches(selector)) {
+            rememberAndHide(scope);
+          }
+
+          var root = scope && scope.querySelectorAll ? scope : document;
+          root.querySelectorAll(selector).forEach(rememberAndHide);
+        }
+
+        function observeWidgets() {
+          if (observer || !document.documentElement) return;
+
+          observer = new MutationObserver(function (records) {
+            if (!pending) return;
+
+            records.forEach(function (record) {
+              if (record.type === 'attributes') {
+                hideWidgets(record.target);
+                return;
+              }
+
+              record.addedNodes.forEach(hideWidgets);
+            });
+          });
+
+          observer.observe(document.documentElement, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ['id', 'style'],
+          });
+        }
+
+        function gatePumper() {
+          pending = true;
+          document.documentElement.setAttribute('data-salt-product-media', 'loading');
+          observeWidgets();
+          hideWidgets(document);
+        }
+
+        function releasePumper() {
+          pending = false;
+          document.documentElement.removeAttribute('data-salt-product-media');
+
+          if (observer) {
+            observer.disconnect();
+            observer = null;
+          }
+
+          document.querySelectorAll(selector).forEach(function (element) {
+            var original = originalDisplays.get(element);
+            if (!original) return;
+
+            if (original.value) {
+              element.style.setProperty('display', original.value, original.priority);
+            } else {
+              element.style.removeProperty('display');
+            }
+
+            originalDisplays.delete(element);
+          });
+
+          window.setTimeout(function () {
+            window.dispatchEvent(new Event('resize'));
+          }, 0);
+        }
+
+        window.addEventListener('salt:product-media-loading', gatePumper);
+        window.addEventListener('salt:product-media-ready', releasePumper);
+
+        if (pending) gatePumper();
+      })();
+    </script>
+    <script>
+      (function () {
+        // Meta's remote structured-signal rules currently mistake Shopify's
+        // Apple Pay JSON blob for a currency code and crawl the full app shell.
+        // Hide only those two selectors from Meta's own call stack; Shopify and
+        // every storefront feature continue to receive the native DOM results.
+        var blockedMetaSelectors = new Set(['#apple-pay-shop-capabilities', '.site-shell']);
+        var nativeQuerySelector = Document.prototype.querySelector;
+        var nativeQuerySelectorAll = Document.prototype.querySelectorAll;
+        var nativeSendBeacon = Navigator.prototype.sendBeacon;
+        var nativeFetch = window.fetch;
+
+        // Shopify intentionally starts an Apple Private Access Token flow with
+        // a 401 challenge. WebDriver browsers cannot complete Apple device
+        // attestation, so keep the production Safari flow untouched while
+        // making automated storefront checks deterministic and error-free.
+        if (navigator.webdriver && typeof nativeFetch === 'function') {
+          window.fetch = function (input, init) {
+            var rawUrl = typeof input === 'string' ? input : input && input.url;
+
+            try {
+              var requestUrl = new URL(String(rawUrl || ''), window.location.href);
+              if (
+                requestUrl.origin === window.location.origin &&
+                requestUrl.pathname === '/sf_private_access_tokens'
+              ) {
+                window.__SALT_AUTOMATION_PAT_BYPASS__ = true;
+                return Promise.resolve(new Response(null, { status: 204 }));
+              }
+            } catch (error) {
+              // Preserve native fetch behavior for malformed or unsupported inputs.
+            }
+
+            return nativeFetch.call(this, input, init);
+          };
+        }
+
+        function isMetaCrawlerCall() {
+          return /(?:connect\.facebook\.net|fbevents)/i.test(String(new Error().stack || ''));
+        }
+
+        Document.prototype.querySelector = function (selector) {
+          if (blockedMetaSelectors.has(String(selector)) && isMetaCrawlerCall()) return null;
+          return nativeQuerySelector.call(this, selector);
+        };
+
+        Document.prototype.querySelectorAll = function (selector) {
+          if (blockedMetaSelectors.has(String(selector)) && isMetaCrawlerCall()) {
+            return document.createDocumentFragment().querySelectorAll('*');
+          }
+          return nativeQuerySelectorAll.call(this, selector);
+        };
+
+        // Meta can exhaust WebKit's shared 64 KB keepalive queue when Shopify
+        // pixels initialize together. Deliver only Meta's tracking endpoint
+        // through a normal non-blocking fetch so events still reach Facebook
+        // without producing a storefront Beacon API error.
+        if (typeof nativeSendBeacon === 'function') {
+          Navigator.prototype.sendBeacon = function (url, data) {
+            var target = String(url || '');
+
+            if (/^https:\/\/(?:www\.)?facebook\.com\/tr\//i.test(target)) {
+              try {
+                window.fetch(target, {
+                  method: 'POST',
+                  body: data == null ? undefined : data,
+                  mode: 'no-cors',
+                  credentials: 'omit',
+                  keepalive: false,
+                }).catch(function () {});
+                return true;
+              } catch (error) {
+                return nativeSendBeacon.call(this, url, data);
+              }
+            }
+
+            return nativeSendBeacon.call(this, url, data);
+          };
+        }
+      })();
+    </script>
+    {% if salt_custom_canonical %}
+      {% assign salt_native_canonical_tag = '<link rel="canonical" href="' | append: canonical_url | append: '">' %}
+      {{ salt_content_for_header | remove: salt_native_canonical_tag }}
+    {% else %}
+      {{ salt_content_for_header }}
+    {% endif %}
+    {% if request.page_type == 'product' %}
+      <script>
+        (function () {
+          var match = window.location.pathname.match(/^\/products?\/([^\/?#]+)\/?$/);
+          if (!match) return;
+
+          var handle = decodeURIComponent(match[1]);
+          var url = '/products/' + encodeURIComponent(handle) + '.js';
+          var inlineProduct = {{ product | json }};
+          window.__SALT_PRODUCT_PREFETCH__ = {
+            handle: handle.toLowerCase(),
+            raw: inlineProduct && inlineProduct.id ? inlineProduct : null,
+            // Use the inline payload for the first paint, but always revalidate
+            // the direct product endpoint so storefront prices cannot remain
+            // stuck on an older document snapshot.
+            payload: fetch(url, { cache: 'no-cache', credentials: 'same-origin' }).then(function (response) {
+              if (!response.ok) throw new Error('Product preload failed (' + response.status + ')');
+              return response.json();
+            }),
+          };
+        })();
+      </script>
+    {% endif %}
+    {% if request.page_type == 'index' %}
+      <script>
+        (function () {
+          window.__SALT_HOME_PREFETCH__ = {"generatedAt":"2026-08-17T09:47:44.478Z","source":"https://vs-future-store-0jl2t-jxu6tnr3.myshopify.com","total":0,"sources":{"bestSellerProducts":"appplaza-best-sellers","quirkyGiftPicks":"gifts","everydayEssentialProducts":"garden-tools"},"bestSellerProducts":[],"quirkyGiftPicks":[],"everydayEssentialProducts":[]};
+        })();
+      </script>
+    {% endif %}
+    {% if request.page_type == 'collection' and collection %}
+      {% paginate collection.products by 250 %}
+        <script>
+          (function () {
+            // Shopify renders this payload inside the uploaded theme. It is a
+            // request-time snapshot, so React gets current manual ordering,
+            // prices, availability, and newly added first-page products before
+            // its modules execute and without a storefront API round-trip.
+            var liveProducts = [
+              {% for item in collection.products limit: 24 %}
+                {
+                  id: {{ item.id | json }},
+                  title: {{ item.title | json }},
+                  handle: {{ item.handle | json }},
+                  body_html: null,
+                  vendor: {{ item.vendor | json }},
+                  product_type: {{ item.type | json }},
+                  tags: {{ item.tags | json }},
+                  created_at: {{ item.created_at | date: '%Y-%m-%dT%H:%M:%SZ' | json }},
+                  published_at: {{ item.published_at | date: '%Y-%m-%dT%H:%M:%SZ' | json }},
+                  updated_at: {{ item.updated_at | date: '%Y-%m-%dT%H:%M:%SZ' | json }},
+                  variants: [
+                    {% for variant in item.variants %}
+                      {
+                        id: {{ variant.id | json }},
+                        title: {{ variant.title | json }},
+                        price: {{ variant.price | json }},
+                        compare_at_price: {% if variant.compare_at_price %}{{ variant.compare_at_price | json }}{% else %}null{% endif %},
+                        available: {{ variant.available | json }},
+                        sku: {{ variant.sku | json }},
+                        requires_shipping: {{ variant.requires_shipping | json }}
+                      }{% unless forloop.last %},{% endunless %}
+                    {% endfor %}
+                  ],
+                  images: [
+                    {% if item.featured_image %}
+                      {
+                        id: {{ item.featured_image.id | default: item.id | json }},
+                        src: {{ item.featured_image | image_url: width: 900 | json }},
+                        alt: {{ item.featured_image.alt | default: item.title | json }},
+                        width: {{ item.featured_image.width | json }},
+                        height: {{ item.featured_image.height | json }}
+                      }
+                    {% endif %}
+                  ],
+                  image: {% if item.featured_image %}{
+                    id: {{ item.featured_image.id | default: item.id | json }},
+                    src: {{ item.featured_image | image_url: width: 900 | json }},
+                    alt: {{ item.featured_image.alt | default: item.title | json }},
+                    width: {{ item.featured_image.width | json }},
+                    height: {{ item.featured_image.height | json }}
+                  }{% else %}null{% endif %}
+                }{% unless forloop.last %},{% endunless %}
+              {% endfor %}
+            ];
+
+            window.__SALT_COLLECTION_PREFETCH__ = {
+              handle: {{ collection.handle | downcase | json }},
+              generatedAt: {{ 'now' | date: '%Y-%m-%dT%H:%M:%SZ' | json }},
+              complete: {% if paginate.pages == 1 %}true{% else %}false{% endif %},
+              currentPage: {{ paginate.current_page | json }},
+              total: {{ collection.products_count | json }},
+              productIds: [
+                {% for item in collection.products %}
+                  {{ item.id | json }}{% unless forloop.last %},{% endunless %}
+                {% endfor %}
+              ],
+              products: liveProducts
+            };
+          })();
+        </script>
+      {% endpaginate %}
+    {% endif %}
+    {% if "salt-entry-86f1808fc4d5.js" != blank %}
+      <script type="module" src="{{ "salt-entry-86f1808fc4d5.js" | asset_url | split: '?' | first }}"></script>
+    {% else %}
+      <script type="module" src="{{ 'salt-app.js' | asset_url }}"></script>
+    {% endif %}
+  </head>
+  <body>
+    {{ content_for_layout }}
+  </body>
+</html>
