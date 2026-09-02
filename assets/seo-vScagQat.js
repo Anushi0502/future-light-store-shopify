@@ -1,0 +1,1 @@
+var e=`https://vss-store.vercel.app`.replace(/\/+$/,``),t=`T5OO6im9_fwXtSjarVqkZvx-JHYudcUe_B6jhJH-BeY`;function n(t=`/`){let n=String(t||`/`).trim()||`/`,r=new URL(n,`${e}/`).pathname.replace(/\/{2,}/g,`/`);return`${e}${r===`/`?`/`:r.replace(/\/+$/,``)}`}export{n,t};
