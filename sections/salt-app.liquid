@@ -1,3 +1,9 @@
+{% if request.page_type == 'product' and product %}
+<s-view-event
+  view-event-trigger="connect"
+  view-event-payload='{{ product | standard_event_data: "view", context: "page" | escape }}'
+>
+{% endif %}
 <div
   id="root"
   data-shop-base-url="https://{{ request.host | escape }}"
@@ -8,7 +14,7 @@
   data-currency="{{ cart.currency.iso_code | default: shop.currency | escape }}"
 ></div>
 <script>
-  window.SALT_THEME_BUILD = "mtkx9pc7";
+  window.SALT_THEME_BUILD = "mtl899rg";
   window.SALT_FINANCE_API_ORIGIN = "";
   window.SALT_SHOPIFY_APP_KEY = "";
   window.SALT_THEME_ASSET_BASE = {{ 'salt-app.js' | asset_url | split: 'salt-app.js' | first | json }};
@@ -31,3 +37,6 @@
     "/data/product-search-0003.json": {{ 'data-product-search-0003.json' | asset_url | json }}
   };
 </script>
+{% if request.page_type == 'product' and product %}
+</s-view-event>
+{% endif %}

@@ -231,8 +231,8 @@
     <link rel="icon" type="image/svg+xml" href="{{ 'favicon.svg' | asset_url }}">
     <link rel="preconnect" href="https://cdn.shopify.com" crossorigin>
     {{ 'salt-app.css' | asset_url | stylesheet_tag }}
-    {% if "salt-entry-f026a1020095.js" != blank %}
-      <link rel="modulepreload" href="{{ "salt-entry-f026a1020095.js" | asset_url | split: '?' | first }}" fetchpriority="high">
+    {% if "salt-entry-aac4da9698eb.js" != blank %}
+      <link rel="modulepreload" href="{{ "salt-entry-aac4da9698eb.js" | asset_url | split: '?' | first }}" fetchpriority="high">
     {% endif %}
     {% if request.page_type == 'product' and "" != blank %}
       <link rel="modulepreload" href="{{ "" | asset_url | split: '?' | first }}" fetchpriority="high">
@@ -474,6 +474,25 @@
         }
       })();
     </script>
+    <script type="module">
+      (async function () {
+        try {
+          const standardEvents = await import('https://cdn.shopify.com/storefront/standard-events.js');
+          window.StandardEvents = standardEvents;
+          if (
+            standardEvents.createViewEventElement &&
+            window.customElements &&
+            !window.customElements.get('s-view-event')
+          ) {
+            window.customElements.define('s-view-event', standardEvents.createViewEventElement());
+          }
+          window.dispatchEvent(new Event('future-light:standard-events-ready'));
+        } catch (error) {
+          // Analytics must never block storefront rendering if Shopify's event
+          // runtime is unavailable or delayed by a browser/network policy.
+        }
+      })();
+    </script>
     {{ content_for_header }}
     {% if salt_custom_canonical %}
       <script>
@@ -587,8 +606,8 @@
         </script>
       {% endpaginate %}
     {% endif %}
-    {% if "salt-entry-f026a1020095.js" != blank %}
-      <script type="module" src="{{ "salt-entry-f026a1020095.js" | asset_url | split: '?' | first }}"></script>
+    {% if "salt-entry-aac4da9698eb.js" != blank %}
+      <script type="module" src="{{ "salt-entry-aac4da9698eb.js" | asset_url | split: '?' | first }}"></script>
     {% else %}
       <script type="module" src="{{ 'salt-app.js' | asset_url }}"></script>
     {% endif %}
