@@ -474,6 +474,97 @@
         }
       })();
     </script>
+    <script>
+      (function () {
+        // Keep the documented Shopify storefront event contract available even
+        // when a browser or CSP blocks the optional Shopify CDN module. The
+        // external runtime below replaces this fallback when it loads.
+        function createPromise() {
+          var resolve;
+          var reject;
+          var promise = new Promise(function (resolvePromise, rejectPromise) {
+            resolve = resolvePromise;
+            reject = rejectPromise;
+          });
+          return { promise: promise, resolve: resolve, reject: reject };
+        }
+
+        class ShopifyStandardEvent extends Event {
+          constructor(name, payload) {
+            super(name, { bubbles: true, cancelable: true });
+            Object.assign(this, payload || {});
+          }
+        }
+
+        class ProductViewEvent extends ShopifyStandardEvent {
+          constructor(payload) {
+            super('shopify:product:view', payload);
+          }
+        }
+
+        class CartLinesUpdateEvent extends ShopifyStandardEvent {
+          constructor(payload) {
+            super('shopify:cart:lines-update', payload);
+          }
+
+          static createPromise() {
+            return createPromise();
+          }
+        }
+
+        class CartErrorEvent extends ShopifyStandardEvent {
+          constructor(payload) {
+            super('shopify:cart:error', payload);
+          }
+        }
+
+        function createViewEventElement() {
+          return class ShopifyViewEventElement extends HTMLElement {
+            connectedCallback() {
+              var trigger = this.getAttribute('view-event-trigger') || 'connect';
+              if (trigger === 'connect') setTimeout(() => this.dispatchViewEvent());
+              if (trigger === 'intersect' && window.IntersectionObserver) {
+                var observer = new IntersectionObserver((entries) => {
+                  if (entries.some((entry) => entry.isIntersecting)) {
+                    observer.disconnect();
+                    this.dispatchViewEvent();
+                  }
+                }, { threshold: 0.5 });
+                observer.observe(this);
+              }
+            }
+
+            dispatchViewEvent() {
+              if (this.dataset.eventDispatched === 'true') return;
+              var payload = this.getAttribute('view-event-payload');
+              if (!payload) return;
+              try {
+                var data = JSON.parse(payload);
+                this.dataset.eventDispatched = 'true';
+                if (data && data.product) {
+                  data.context = data.context || 'page';
+                  this.dispatchEvent(new ProductViewEvent(data));
+                }
+              } catch (error) {
+                // Invalid optional analytics payloads must not affect rendering.
+              }
+            }
+          };
+        }
+
+        var fallback = {
+          ProductViewEvent: ProductViewEvent,
+          CartLinesUpdateEvent: CartLinesUpdateEvent,
+          CartErrorEvent: CartErrorEvent,
+          createViewEventElement: createViewEventElement,
+        };
+        window.StandardEvents = window.StandardEvents || fallback;
+        if (window.customElements && !window.customElements.get('s-view-event')) {
+          window.customElements.define('s-view-event', window.StandardEvents.createViewEventElement());
+        }
+        window.dispatchEvent(new Event('future-light:standard-events-ready'));
+      })();
+    </script>
     <script type="module">
       (async function () {
         try {
@@ -488,8 +579,7 @@
           }
           window.dispatchEvent(new Event('future-light:standard-events-ready'));
         } catch (error) {
-          // Analytics must never block storefront rendering if Shopify's event
-          // runtime is unavailable or delayed by a browser/network policy.
+          // The synchronous fallback above already covers analytics safely.
         }
       })();
     </script>
