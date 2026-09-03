@@ -116,6 +116,7 @@
     {% endif %}
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="{{ shop.name | escape }}">
+    {{ content_for_header }}
     <script>
       (function () {
         var path = window.location.pathname;
@@ -231,8 +232,8 @@
     <link rel="icon" type="image/svg+xml" href="{{ 'favicon.svg' | asset_url }}">
     <link rel="preconnect" href="https://cdn.shopify.com" crossorigin>
     {{ 'salt-app.css' | asset_url | stylesheet_tag }}
-    {% if "salt-entry-aac4da9698eb.js" != blank %}
-      <link rel="modulepreload" href="{{ "salt-entry-aac4da9698eb.js" | asset_url | split: '?' | first }}" fetchpriority="high">
+    {% if "salt-entry-30f79bf2076a.js" != blank %}
+      <link rel="modulepreload" href="{{ "salt-entry-30f79bf2076a.js" | asset_url | split: '?' | first }}" fetchpriority="high">
     {% endif %}
     {% if request.page_type == 'product' and "" != blank %}
       <link rel="modulepreload" href="{{ "" | asset_url | split: '?' | first }}" fetchpriority="high">
@@ -395,90 +396,9 @@
     </script>
     <script>
       (function () {
-        // Meta's remote structured-signal rules currently mistake Shopify's
-        // Apple Pay JSON blob for a currency code and crawl the full app shell.
-        // Hide only those two selectors from Meta's own call stack; Shopify and
-        // every storefront feature continue to receive the native DOM results.
-        var blockedMetaSelectors = new Set(['#apple-pay-shop-capabilities', '.site-shell']);
-        var nativeQuerySelector = Document.prototype.querySelector;
-        var nativeQuerySelectorAll = Document.prototype.querySelectorAll;
-        var nativeSendBeacon = Navigator.prototype.sendBeacon;
-        var nativeFetch = window.fetch;
-
-        // Shopify intentionally starts an Apple Private Access Token flow with
-        // a 401 challenge. WebDriver browsers cannot complete Apple device
-        // attestation, so keep the production Safari flow untouched while
-        // making automated storefront checks deterministic and error-free.
-        if (navigator.webdriver && typeof nativeFetch === 'function') {
-          window.fetch = function (input, init) {
-            var rawUrl = typeof input === 'string' ? input : input && input.url;
-
-            try {
-              var requestUrl = new URL(String(rawUrl || ''), window.location.href);
-              if (
-                requestUrl.origin === window.location.origin &&
-                requestUrl.pathname === '/sf_private_access_tokens'
-              ) {
-                window.__SALT_AUTOMATION_PAT_BYPASS__ = true;
-                return Promise.resolve(new Response(null, { status: 204 }));
-              }
-            } catch (error) {
-              // Preserve native fetch behavior for malformed or unsupported inputs.
-            }
-
-            return nativeFetch.call(this, input, init);
-          };
-        }
-
-        function isMetaCrawlerCall() {
-          return /(?:connect\.facebook\.net|fbevents)/i.test(String(new Error().stack || ''));
-        }
-
-        Document.prototype.querySelector = function (selector) {
-          if (blockedMetaSelectors.has(String(selector)) && isMetaCrawlerCall()) return null;
-          return nativeQuerySelector.call(this, selector);
-        };
-
-        Document.prototype.querySelectorAll = function (selector) {
-          if (blockedMetaSelectors.has(String(selector)) && isMetaCrawlerCall()) {
-            return document.createDocumentFragment().querySelectorAll('*');
-          }
-          return nativeQuerySelectorAll.call(this, selector);
-        };
-
-        // Meta can exhaust WebKit's shared 64 KB keepalive queue when Shopify
-        // pixels initialize together. Deliver only Meta's tracking endpoint
-        // through a normal non-blocking fetch so events still reach Facebook
-        // without producing a storefront Beacon API error.
-        if (typeof nativeSendBeacon === 'function') {
-          Navigator.prototype.sendBeacon = function (url, data) {
-            var target = String(url || '');
-
-            if (/^https:\/\/(?:www\.)?facebook\.com\/tr\//i.test(target)) {
-              try {
-                window.fetch(target, {
-                  method: 'POST',
-                  body: data == null ? undefined : data,
-                  mode: 'no-cors',
-                  credentials: 'omit',
-                  keepalive: false,
-                }).catch(function () {});
-                return true;
-              } catch (error) {
-                return nativeSendBeacon.call(this, url, data);
-              }
-            }
-
-            return nativeSendBeacon.call(this, url, data);
-          };
-        }
-      })();
-    </script>
-    <script>
-      (function () {
-        // Keep the documented Shopify storefront event contract available even
-        // when a browser or CSP blocks the optional Shopify CDN module. The
-        // external runtime below replaces this fallback when it loads.
+        // Keep the documented Shopify storefront event contract available when
+        // the optional Shopify CDN module is delayed or blocked. The external
+        // runtime below replaces these classes when it loads successfully.
         function createPromise() {
           var resolve;
           var reject;
@@ -487,6 +407,13 @@
             reject = rejectPromise;
           });
           return { promise: promise, resolve: resolve, reject: reject };
+        }
+
+        function toShopifyGid(type, value) {
+          var stringValue = String(value == null ? '' : value);
+          return stringValue.indexOf('gid://shopify/') === 0
+            ? stringValue
+            : 'gid://shopify/' + type + '/' + stringValue;
         }
 
         class ShopifyStandardEvent extends Event {
@@ -498,13 +425,42 @@
 
         class ProductViewEvent extends ShopifyStandardEvent {
           constructor(payload) {
-            super('shopify:product:view', payload);
+            var product = payload && payload.product;
+            super('shopify:product:view', {
+              ...(payload || {}),
+              product: product
+                ? {
+                    ...product,
+                    id: toShopifyGid('Product', product.id),
+                    selectedVariant: product.selectedVariant
+                      ? {
+                          ...product.selectedVariant,
+                          id: toShopifyGid('ProductVariant', product.selectedVariant.id),
+                        }
+                      : null,
+                  }
+                : product,
+            });
           }
         }
 
         class CartLinesUpdateEvent extends ShopifyStandardEvent {
           constructor(payload) {
-            super('shopify:cart:lines-update', payload);
+            var source = payload || {};
+            var isAdd = source.action === 'add';
+            super('shopify:cart:lines-update', {
+              ...source,
+              lines: Array.isArray(source.lines)
+                ? source.lines.map(function (line) {
+                    var key = isAdd ? 'merchandiseId' : 'id';
+                    return {
+                      ...line,
+                      [key]: toShopifyGid(isAdd ? 'ProductVariant' : 'CartLine', line[key]),
+                    };
+                  })
+                : [],
+              promise: source.promise,
+            });
           }
 
           static createPromise() {
@@ -558,7 +514,10 @@
           CartErrorEvent: CartErrorEvent,
           createViewEventElement: createViewEventElement,
         };
-        window.StandardEvents = window.StandardEvents || fallback;
+        window.StandardEvents = {
+          ...(window.StandardEvents || {}),
+          ...fallback,
+        };
         if (window.customElements && !window.customElements.get('s-view-event')) {
           window.customElements.define('s-view-event', window.StandardEvents.createViewEventElement());
         }
@@ -583,7 +542,6 @@
         }
       })();
     </script>
-    {{ content_for_header }}
     {% if salt_custom_canonical %}
       <script>
         (function () {
@@ -696,8 +654,8 @@
         </script>
       {% endpaginate %}
     {% endif %}
-    {% if "salt-entry-aac4da9698eb.js" != blank %}
-      <script type="module" src="{{ "salt-entry-aac4da9698eb.js" | asset_url | split: '?' | first }}"></script>
+    {% if "salt-entry-30f79bf2076a.js" != blank %}
+      <script type="module" src="{{ "salt-entry-30f79bf2076a.js" | asset_url | split: '?' | first }}"></script>
     {% else %}
       <script type="module" src="{{ 'salt-app.js' | asset_url }}"></script>
     {% endif %}
