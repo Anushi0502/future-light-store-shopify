@@ -195,11 +195,13 @@
                 "@type": "Brand",
                 "name": {{ product.vendor | default: shop.name | json }}
               },
-              "category": {{ product.type | default: 'Product' | json }},
+              {% if product.type != blank %}
+                "category": {{ product.type | json }},
+              {% endif %}
               "offers": {
                 "@type": "Offer",
                 "url": "https://{{ request.host }}{{ product.url }}",
-                "price": {{ salt_selected_variant.price | json }},
+                "price": {{ salt_selected_variant.price | divided_by: 100.0 | json }},
                 "priceCurrency": {{ shop.currency | json }},
                 "availability": "{% if salt_selected_variant.available %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}",
                 "itemCondition": "https://schema.org/NewCondition"
