@@ -68,9 +68,16 @@
     return metaPixelPromise;
   }
 
-  function buildPayload(event) {
-    var meta = event && event.meta;
-    var lines = Array.isArray(event && event.lines) ? event.lines : [];
+  function buildPayload(source) {
+    var meta = source && source.meta ? source.meta : source;
+    var lines = Array.isArray(source && source.lines)
+      ? source.lines
+      : [
+          {
+            merchandiseId: source && source.variantId,
+            quantity: source && source.quantity,
+          },
+        ];
     var productId = meta && meta.productId ? metaId(meta.productId) : "";
     var variantId = lines[0] && lines[0].merchandiseId ? metaId(lines[0].merchandiseId) : "";
     var contentId = productId || variantId;
@@ -93,8 +100,8 @@
     return payload;
   }
 
-  function send(event) {
-    var payload = buildPayload(event);
+  function send(source) {
+    var payload = buildPayload(source);
     var decision = trackingDecision();
     if (!payload || !decision.ready || !decision.allowed) return;
 
@@ -102,6 +109,15 @@
       if (typeof fbq !== "function") return;
       fbq("track", "AddToCart", payload);
     });
+  }
+
+  function queue(source) {
+    var decision = trackingDecision();
+    if (decision.ready && decision.allowed) send(source);
+    else if (!decision.ready) {
+      pendingEvents.push(source);
+      pollPrivacy();
+    }
   }
 
   function flush() {
@@ -120,36 +136,9 @@
     window.setTimeout(pollPrivacy, 1000);
   }
 
-  document.addEventListener("shopify:cart:lines-update", function (event) {
-    if (!event || event.action !== "add") return;
-    if (event.__futureLightMetaTracked) return;
-    event.__futureLightMetaTracked = true;
-
-    var result = event.promise;
-    if (result && typeof result.then === "function") {
-      result.then(function (response) {
-        if (
-          response &&
-          (!response.userErrors || response.userErrors.length === 0) &&
-          response.cart
-        ) {
-          var decision = trackingDecision();
-          if (decision.ready && decision.allowed) send(event);
-          else if (!decision.ready) {
-            pendingEvents.push(event);
-            pollPrivacy();
-          }
-        }
-      });
-      return;
-    }
-
-    var decision = trackingDecision();
-    if (decision.ready && decision.allowed) send(event);
-    else if (!decision.ready) {
-      pendingEvents.push(event);
-      pollPrivacy();
-    }
+  window.addEventListener("future-light:cart-add-success", function (event) {
+    if (!event || !event.detail) return;
+    queue(event.detail);
   });
 
   document.addEventListener("visitorConsentCollected", function () {
