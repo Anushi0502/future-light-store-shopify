@@ -117,6 +117,7 @@
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="{{ shop.name | escape }}">
     {{ content_for_header }}
+    <script src="{{ 'future-light-meta-events.js' | asset_url }}" defer></script>
     <script>
       (function () {
         var path = window.location.pathname;
@@ -232,8 +233,8 @@
     <link rel="icon" type="image/svg+xml" href="{{ 'favicon.svg' | asset_url }}">
     <link rel="preconnect" href="https://cdn.shopify.com" crossorigin>
     {{ 'salt-app.css' | asset_url | stylesheet_tag }}
-    {% if "salt-entry-30f79bf2076a.js" != blank %}
-      <link rel="modulepreload" href="{{ "salt-entry-30f79bf2076a.js" | asset_url | split: '?' | first }}" fetchpriority="high">
+    {% if "salt-entry-79f905b795d0.js" != blank %}
+      <link rel="modulepreload" href="{{ "salt-entry-79f905b795d0.js" | asset_url | split: '?' | first }}" fetchpriority="high">
     {% endif %}
     {% if request.page_type == 'product' and "" != blank %}
       <link rel="modulepreload" href="{{ "" | asset_url | split: '?' | first }}" fetchpriority="high">
@@ -654,8 +655,8 @@
         </script>
       {% endpaginate %}
     {% endif %}
-    {% if "salt-entry-30f79bf2076a.js" != blank %}
-      <script type="module" src="{{ "salt-entry-30f79bf2076a.js" | asset_url | split: '?' | first }}"></script>
+    {% if "salt-entry-79f905b795d0.js" != blank %}
+      <script type="module" src="{{ "salt-entry-79f905b795d0.js" | asset_url | split: '?' | first }}"></script>
     {% else %}
       <script type="module" src="{{ 'salt-app.js' | asset_url }}"></script>
     {% endif %}
