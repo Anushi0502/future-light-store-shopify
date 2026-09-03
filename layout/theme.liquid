@@ -233,8 +233,8 @@
     <link rel="icon" type="image/svg+xml" href="{{ 'favicon.svg' | asset_url }}">
     <link rel="preconnect" href="https://cdn.shopify.com" crossorigin>
     {{ 'salt-app.css' | asset_url | stylesheet_tag }}
-    {% if "salt-entry-bf0faf6f1d25.js" != blank %}
-      <link rel="modulepreload" href="{{ "salt-entry-bf0faf6f1d25.js" | asset_url | split: '?' | first }}" fetchpriority="high">
+    {% if "salt-entry-97428c05dda3.js" != blank %}
+      <link rel="modulepreload" href="{{ "salt-entry-97428c05dda3.js" | asset_url | split: '?' | first }}" fetchpriority="high">
     {% endif %}
     {% if request.page_type == 'product' and "" != blank %}
       <link rel="modulepreload" href="{{ "" | asset_url | split: '?' | first }}" fetchpriority="high">
@@ -655,8 +655,8 @@
         </script>
       {% endpaginate %}
     {% endif %}
-    {% if "salt-entry-bf0faf6f1d25.js" != blank %}
-      <script type="module" src="{{ "salt-entry-bf0faf6f1d25.js" | asset_url | split: '?' | first }}"></script>
+    {% if "salt-entry-97428c05dda3.js" != blank %}
+      <script type="module" src="{{ "salt-entry-97428c05dda3.js" | asset_url | split: '?' | first }}"></script>
     {% else %}
       <script type="module" src="{{ 'salt-app.js' | asset_url }}"></script>
     {% endif %}
