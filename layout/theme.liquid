@@ -81,18 +81,26 @@
 
     {% if request.page_type == 'product' and product %}
       {%- comment -%}
-        Shopify's native SEO fields belong to the product, but the selected
-        variant is available during Liquid rendering. Include its identity in
-        the request-time metadata so a backpack/bottle/lunch-box variant does
-        not inherit an unrelated product-only title or description.
+        Build PDP metadata from the actual product record at render time. Strip
+        the repeated heading and generic filler from the HTML description so
+        search snippets describe the item itself rather than exposing editor
+        scaffolding. The selected variant is appended only when it is real.
       {%- endcomment -%}
       {% assign salt_selected_variant = product.selected_or_first_available_variant %}
       {% assign salt_variant_label = salt_selected_variant.title | default: '' | strip %}
+      {% assign salt_product_detail = product.description | split: 'Key Details' | first %}
+      {% assign salt_product_detail = salt_product_detail | strip_html | strip_newlines | remove: 'About' | remove: product.title | remove: 'serves the specific function identified by its handle and confirmed product details.' | remove: 'Confirmed product facts and available options help shoppers compare it for the intended task.' | replace: ' — ', ' ' | replace: '  ', ' ' | strip | truncate: 95 %}
+      {% assign salt_seo_description = 'Shop ' | append: product.title | append: ' at Future Light Store.' %}
+      {% if salt_product_detail != blank %}
+        {% assign salt_seo_description = salt_seo_description | append: ' ' | append: salt_product_detail %}
+      {% else %}
+        {% assign salt_seo_description = salt_seo_description | append: ' Review the product details, options and current availability before ordering.' %}
+      {% endif %}
       {% unless salt_variant_label == blank or salt_variant_label == 'Default Title' %}
         {% assign salt_seo_title = product.title | append: ' - ' | append: salt_variant_label | append: ' | Future Light Store' %}
-        {% assign salt_variant_description = product.description | strip_html | strip_newlines | truncate: 115 %}
-        {% assign salt_seo_description = salt_variant_description | append: ' Selected option: ' | append: salt_variant_label | append: '.' %}
+        {% assign salt_seo_description = salt_seo_description | append: ' Selected option: ' | append: salt_variant_label | append: '.' %}
       {% endunless %}
+      {% assign salt_seo_description = salt_seo_description | strip_html | strip_newlines | replace: '  ', ' ' | strip | truncate: 158 %}
     {% endif %}
 
     <title>{{ salt_seo_title | escape }}</title>
@@ -108,6 +116,7 @@
     {% endif %}
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="{{ shop.name | escape }}">
+    {{ content_for_header }}
     <script>
       (function () {
         var path = window.location.pathname;
@@ -168,11 +177,63 @@
         }
       }
     </script>
+    {% if request.page_type == 'product' and product %}
+      <script type="application/ld+json">
+        {
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "Product",
+              "name": {{ product.title | json }},
+              "description": {{ salt_seo_description | strip_html | strip_newlines | json }},
+              "url": "https://{{ request.host }}{{ product.url }}",
+              "image": [
+                {% for image in product.images limit: 8 %}
+                  {{ image | image_url: width: 1200 | prepend: 'https:' | json }}{% unless forloop.last %},{% endunless %}
+                {% endfor %}
+              ],
+              "brand": {
+                "@type": "Brand",
+                "name": {{ product.vendor | default: shop.name | json }}
+              },
+              {% if product.type != blank %}
+                "category": {{ product.type | json }},
+              {% endif %}
+              "offers": {
+                "@type": "Offer",
+                "url": "https://{{ request.host }}{{ product.url }}",
+                "price": {{ salt_selected_variant.price | divided_by: 100.0 | json }},
+                "priceCurrency": {{ shop.currency | json }},
+                "availability": "{% if salt_selected_variant.available %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}",
+                "itemCondition": "https://schema.org/NewCondition"
+              }
+            },
+            {
+              "@type": "BreadcrumbList",
+              "itemListElement": [
+                {
+                  "@type": "ListItem",
+                  "position": 1,
+                  "name": "Home",
+                  "item": "https://{{ request.host }}/"
+                },
+                {
+                  "@type": "ListItem",
+                  "position": 2,
+                  "name": {{ product.title | json }},
+                  "item": "https://{{ request.host }}{{ product.url }}"
+                }
+              ]
+            }
+          ]
+        }
+      </script>
+    {% endif %}
     <link rel="icon" type="image/svg+xml" href="{{ 'favicon.svg' | asset_url }}">
     <link rel="preconnect" href="https://cdn.shopify.com" crossorigin>
     {{ 'salt-app.css' | asset_url | stylesheet_tag }}
-    {% if "salt-entry-f026a1020095.js" != blank %}
-      <link rel="modulepreload" href="{{ "salt-entry-f026a1020095.js" | asset_url | split: '?' | first }}" fetchpriority="high">
+    {% if "salt-entry-36fc455d719a.js" != blank %}
+      <link rel="modulepreload" href="{{ "salt-entry-36fc455d719a.js" | asset_url | split: '?' | first }}" fetchpriority="high">
     {% endif %}
     {% if request.page_type == 'product' and "" != blank %}
       <link rel="modulepreload" href="{{ "" | asset_url | split: '?' | first }}" fetchpriority="high">
@@ -335,86 +396,152 @@
     </script>
     <script>
       (function () {
-        // Meta's remote structured-signal rules currently mistake Shopify's
-        // Apple Pay JSON blob for a currency code and crawl the full app shell.
-        // Hide only those two selectors from Meta's own call stack; Shopify and
-        // every storefront feature continue to receive the native DOM results.
-        var blockedMetaSelectors = new Set(['#apple-pay-shop-capabilities', '.site-shell']);
-        var nativeQuerySelector = Document.prototype.querySelector;
-        var nativeQuerySelectorAll = Document.prototype.querySelectorAll;
-        var nativeSendBeacon = Navigator.prototype.sendBeacon;
-        var nativeFetch = window.fetch;
-
-        // Shopify intentionally starts an Apple Private Access Token flow with
-        // a 401 challenge. WebDriver browsers cannot complete Apple device
-        // attestation, so keep the production Safari flow untouched while
-        // making automated storefront checks deterministic and error-free.
-        if (navigator.webdriver && typeof nativeFetch === 'function') {
-          window.fetch = function (input, init) {
-            var rawUrl = typeof input === 'string' ? input : input && input.url;
-
-            try {
-              var requestUrl = new URL(String(rawUrl || ''), window.location.href);
-              if (
-                requestUrl.origin === window.location.origin &&
-                requestUrl.pathname === '/sf_private_access_tokens'
-              ) {
-                window.__SALT_AUTOMATION_PAT_BYPASS__ = true;
-                return Promise.resolve(new Response(null, { status: 204 }));
-              }
-            } catch (error) {
-              // Preserve native fetch behavior for malformed or unsupported inputs.
-            }
-
-            return nativeFetch.call(this, input, init);
-          };
+        // Keep the documented Shopify storefront event contract available when
+        // the optional Shopify CDN module is delayed or blocked. The external
+        // runtime below replaces these classes when it loads successfully.
+        function createPromise() {
+          var resolve;
+          var reject;
+          var promise = new Promise(function (resolvePromise, rejectPromise) {
+            resolve = resolvePromise;
+            reject = rejectPromise;
+          });
+          return { promise: promise, resolve: resolve, reject: reject };
         }
 
-        function isMetaCrawlerCall() {
-          return /(?:connect\.facebook\.net|fbevents)/i.test(String(new Error().stack || ''));
+        function toShopifyGid(type, value) {
+          var stringValue = String(value == null ? '' : value);
+          return stringValue.indexOf('gid://shopify/') === 0
+            ? stringValue
+            : 'gid://shopify/' + type + '/' + stringValue;
         }
 
-        Document.prototype.querySelector = function (selector) {
-          if (blockedMetaSelectors.has(String(selector)) && isMetaCrawlerCall()) return null;
-          return nativeQuerySelector.call(this, selector);
-        };
-
-        Document.prototype.querySelectorAll = function (selector) {
-          if (blockedMetaSelectors.has(String(selector)) && isMetaCrawlerCall()) {
-            return document.createDocumentFragment().querySelectorAll('*');
+        class ShopifyStandardEvent extends Event {
+          constructor(name, payload) {
+            super(name, { bubbles: true, cancelable: true });
+            Object.assign(this, payload || {});
           }
-          return nativeQuerySelectorAll.call(this, selector);
-        };
+        }
 
-        // Meta can exhaust WebKit's shared 64 KB keepalive queue when Shopify
-        // pixels initialize together. Deliver only Meta's tracking endpoint
-        // through a normal non-blocking fetch so events still reach Facebook
-        // without producing a storefront Beacon API error.
-        if (typeof nativeSendBeacon === 'function') {
-          Navigator.prototype.sendBeacon = function (url, data) {
-            var target = String(url || '');
+        class ProductViewEvent extends ShopifyStandardEvent {
+          constructor(payload) {
+            var product = payload && payload.product;
+            super('shopify:product:view', {
+              ...(payload || {}),
+              product: product
+                ? {
+                    ...product,
+                    id: toShopifyGid('Product', product.id),
+                    selectedVariant: product.selectedVariant
+                      ? {
+                          ...product.selectedVariant,
+                          id: toShopifyGid('ProductVariant', product.selectedVariant.id),
+                        }
+                      : null,
+                  }
+                : product,
+            });
+          }
+        }
 
-            if (/^https:\/\/(?:www\.)?facebook\.com\/tr\//i.test(target)) {
-              try {
-                window.fetch(target, {
-                  method: 'POST',
-                  body: data == null ? undefined : data,
-                  mode: 'no-cors',
-                  credentials: 'omit',
-                  keepalive: false,
-                }).catch(function () {});
-                return true;
-              } catch (error) {
-                return nativeSendBeacon.call(this, url, data);
+        class CartLinesUpdateEvent extends ShopifyStandardEvent {
+          constructor(payload) {
+            var source = payload || {};
+            var isAdd = source.action === 'add';
+            super('shopify:cart:lines-update', {
+              ...source,
+              lines: Array.isArray(source.lines)
+                ? source.lines.map(function (line) {
+                    var key = isAdd ? 'merchandiseId' : 'id';
+                    return {
+                      ...line,
+                      [key]: toShopifyGid(isAdd ? 'ProductVariant' : 'CartLine', line[key]),
+                    };
+                  })
+                : [],
+              promise: source.promise,
+            });
+          }
+
+          static createPromise() {
+            return createPromise();
+          }
+        }
+
+        class CartErrorEvent extends ShopifyStandardEvent {
+          constructor(payload) {
+            super('shopify:cart:error', payload);
+          }
+        }
+
+        function createViewEventElement() {
+          return class ShopifyViewEventElement extends HTMLElement {
+            connectedCallback() {
+              var trigger = this.getAttribute('view-event-trigger') || 'connect';
+              if (trigger === 'connect') setTimeout(() => this.dispatchViewEvent());
+              if (trigger === 'intersect' && window.IntersectionObserver) {
+                var observer = new IntersectionObserver((entries) => {
+                  if (entries.some((entry) => entry.isIntersecting)) {
+                    observer.disconnect();
+                    this.dispatchViewEvent();
+                  }
+                }, { threshold: 0.5 });
+                observer.observe(this);
               }
             }
 
-            return nativeSendBeacon.call(this, url, data);
+            dispatchViewEvent() {
+              if (this.dataset.eventDispatched === 'true') return;
+              var payload = this.getAttribute('view-event-payload');
+              if (!payload) return;
+              try {
+                var data = JSON.parse(payload);
+                this.dataset.eventDispatched = 'true';
+                if (data && data.product) {
+                  data.context = data.context || 'page';
+                  this.dispatchEvent(new ProductViewEvent(data));
+                }
+              } catch (error) {
+                // Invalid optional analytics payloads must not affect rendering.
+              }
+            }
           };
+        }
+
+        var fallback = {
+          ProductViewEvent: ProductViewEvent,
+          CartLinesUpdateEvent: CartLinesUpdateEvent,
+          CartErrorEvent: CartErrorEvent,
+          createViewEventElement: createViewEventElement,
+        };
+        window.StandardEvents = {
+          ...(window.StandardEvents || {}),
+          ...fallback,
+        };
+        if (window.customElements && !window.customElements.get('s-view-event')) {
+          window.customElements.define('s-view-event', window.StandardEvents.createViewEventElement());
+        }
+        window.dispatchEvent(new Event('future-light:standard-events-ready'));
+      })();
+    </script>
+    <script type="module">
+      (async function () {
+        try {
+          const standardEvents = await import('https://cdn.shopify.com/storefront/standard-events.js');
+          window.StandardEvents = standardEvents;
+          if (
+            standardEvents.createViewEventElement &&
+            window.customElements &&
+            !window.customElements.get('s-view-event')
+          ) {
+            window.customElements.define('s-view-event', standardEvents.createViewEventElement());
+          }
+          window.dispatchEvent(new Event('future-light:standard-events-ready'));
+        } catch (error) {
+          // The synchronous fallback above already covers analytics safely.
         }
       })();
     </script>
-    {{ content_for_header }}
     {% if salt_custom_canonical %}
       <script>
         (function () {
@@ -527,8 +654,8 @@
         </script>
       {% endpaginate %}
     {% endif %}
-    {% if "salt-entry-f026a1020095.js" != blank %}
-      <script type="module" src="{{ "salt-entry-f026a1020095.js" | asset_url | split: '?' | first }}"></script>
+    {% if "salt-entry-36fc455d719a.js" != blank %}
+      <script type="module" src="{{ "salt-entry-36fc455d719a.js" | asset_url | split: '?' | first }}"></script>
     {% else %}
       <script type="module" src="{{ 'salt-app.js' | asset_url }}"></script>
     {% endif %}
