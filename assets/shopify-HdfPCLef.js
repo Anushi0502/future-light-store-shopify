@@ -25,14 +25,7 @@ import{t as e}from"./client-CTYVcYE_.js";var t=!0,n;function r(){if(typeof windo
     }
   }
   options { name values }
-`,p=`
-  query GetProducts($first: Int!, $after: String, $query: String) {
-    products(first: $first, after: $after, query: $query) {
-      edges { node { ${f} } }
-      pageInfo { hasNextPage endCursor }
-    }
-  }
-`,m=`
+`;`${f}`;var p=`
   query GetProducts($first: Int!, $after: String, $query: String) {
     products(first: $first, after: $after, query: $query) {
       edges {
@@ -66,17 +59,17 @@ import{t as e}from"./client-CTYVcYE_.js";var t=!0,n;function r(){if(typeof windo
       pageInfo { hasNextPage endCursor }
     }
   }
-`,h=`
+`,m=`
   query GetProduct($handle: String!) {
     product(handle: $handle) { ${f} }
   }
-`,g=`
+`,h=`
   query GetCollections($first: Int!) {
     collections(first: $first) {
       edges { node { id title handle description updatedAt image { url altText } } }
     }
   }
-`,_=`
+`,g=`
   query GetCollection($handle: String!, $first: Int!) {
     collection(handle: $handle) {
       id
@@ -88,4 +81,4 @@ import{t as e}from"./client-CTYVcYE_.js";var t=!0,n;function r(){if(typeof windo
       products(first: $first) { edges { node { ${f} } } }
     }
   }
-`;async function v(n,r={}){if(!t)return null;let{data:i,error:a}=await e.functions.invoke(`shopify-storefront`,{body:{query:n,variables:r}});if(a)throw Error(a.message||`Catalog service is unavailable`);let o=i.data&&Object.values(i.data).some(e=>e!=null);if(i.errors&&!o)throw Error(`Error calling Shopify: ${i.errors.map(e=>e.message).join(`, `)}`);return i}async function y(e=50,t){return(await v(p,{first:e,after:null,query:t??null}))?.data?.products?.edges??[]}async function b(){try{let e=await u();if(e.length>0)return e}catch(e){console.warn(`Static search catalog unavailable; using Shopify search fallback`,e)}return y(99)}async function x(e){if(!e)try{let e=await d();if(e.length>0)return e}catch(e){console.warn(`Static product catalog unavailable; using Shopify catalog fallback`,e)}let t=[],n=null,r=!0;for(;r;){let i=(await v(m,{first:250,after:n,query:e??null}))?.data?.products;t.push(...i?.edges??[]),r=!!(i?.pageInfo?.hasNextPage&&i?.pageInfo?.endCursor),n=i?.pageInfo?.endCursor??null}return t}async function S(e){return(await v(h,{handle:e}))?.data?.product??null}async function C(e=20){return((await v(g,{first:e}))?.data?.collections?.edges??[]).map(e=>e.node)}async function w(e){let t=(await v(_,{handle:e,first:100}))?.data?.collection;return t?{...t,products:t.products?.edges??[]}:null}function T(e,t=`USD`){let n=typeof e==`string`?parseFloat(e):e;return new Intl.NumberFormat(`en-US`,{style:`currency`,currency:t||`USD`,maximumFractionDigits:2}).format(Number.isFinite(n)?n:0)}function E(e,t){if(!t)return 0;let n=parseFloat(e),r=parseFloat(t);return!r||r<=n?0:Math.round((r-n)/r*100)}export{S as a,T as c,C as i,t as l,x as n,y as o,w as r,b as s,E as t,v as u};
+`;async function _(n,r={}){if(!t)return null;let{data:i,error:a}=await e.functions.invoke(`shopify-storefront`,{body:{query:n,variables:r}});if(a)throw Error(a.message||`Catalog service is unavailable`);let o=i.data&&Object.values(i.data).some(e=>e!=null);if(i.errors&&!o)throw Error(`Error calling Shopify: ${i.errors.map(e=>e.message).join(`, `)}`);return i}async function v(e=50,t){return(await _(p,{first:e,after:null,query:t??null}))?.data?.products?.edges??[]}async function y(){try{let e=await u();if(e.length>0)return e}catch(e){console.warn(`Static search catalog unavailable; using Shopify search fallback`,e)}return v(99)}async function b(e){if(!e)try{let e=await d();if(e.length>0)return e}catch(e){console.warn(`Static product catalog unavailable; using Shopify catalog fallback`,e)}let t=[],n=null,r=!0;for(;r;){let i=(await _(p,{first:250,after:n,query:e??null}))?.data?.products;t.push(...i?.edges??[]),r=!!(i?.pageInfo?.hasNextPage&&i?.pageInfo?.endCursor),n=i?.pageInfo?.endCursor??null}return t}async function x(e){return(await _(m,{handle:e}))?.data?.product??null}async function S(e=20){return((await _(h,{first:e}))?.data?.collections?.edges??[]).map(e=>e.node)}async function C(e){let t=(await _(g,{handle:e,first:100}))?.data?.collection;return t?{...t,products:t.products?.edges??[]}:null}function w(e,t=`USD`){let n=typeof e==`string`?parseFloat(e):e;return new Intl.NumberFormat(`en-US`,{style:`currency`,currency:t||`USD`,maximumFractionDigits:2}).format(Number.isFinite(n)?n:0)}function T(e,t){if(!t)return 0;let n=parseFloat(e),r=parseFloat(t);return!r||r<=n?0:Math.round((r-n)/r*100)}export{x as a,w as c,S as i,t as l,b as n,v as o,C as r,y as s,T as t,_ as u};
