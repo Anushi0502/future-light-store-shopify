@@ -14,7 +14,7 @@
   data-currency="{{ cart.currency.iso_code | default: shop.currency | escape }}"
 ></div>
 <script>
-  window.SALT_THEME_BUILD = "mu05szuz";
+  window.SALT_THEME_BUILD = "mu0zlvyt";
   window.SALT_FINANCE_API_ORIGIN = "";
   window.SALT_SHOPIFY_APP_KEY = "";
   window.SALT_THEME_ASSET_BASE = {{ 'salt-app.js' | asset_url | split: 'salt-app.js' | first | json }};
@@ -33,6 +33,8 @@
     "/data/shop.json": {{ 'data-shop.json' | asset_url | json }},
     "/data/product-browse.json": {{ 'data-product-browse.json' | asset_url | json }},
     "/data/products-0001.json": {{ 'data-products-0001.json' | asset_url | json }},
+    "/data/products-0002.json": {{ 'data-products-0002.json' | asset_url | json }},
+    "/data/products-0003.json": {{ 'data-products-0003.json' | asset_url | json }},
     "/data/product-search-0001.json": {{ 'data-product-search-0001.json' | asset_url | json }},
     "/data/product-search-0002.json": {{ 'data-product-search-0002.json' | asset_url | json }},
     "/data/product-browse-0001.json": {{ 'data-product-browse-0001.json' | asset_url | json }},
