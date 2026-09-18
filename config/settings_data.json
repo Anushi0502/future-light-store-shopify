@@ -15,6 +15,11 @@
         "type": "shopify://apps/cwill-ai-chat/blocks/aichatbot/e7b73941-aea6-4bde-bb29-6e9e414581d0",
         "disabled": false,
         "settings": {}
+      },
+      "6815396902151389245": {
+        "type": "shopify://apps/wava-carts/blocks/whatsapp-chat-button/29b7d300-2d1f-4108-a090-92806a9e2817",
+        "disabled": false,
+        "settings": {}
       }
     }
   }
