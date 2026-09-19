@@ -232,8 +232,8 @@
     <link rel="icon" type="image/svg+xml" href="{{ 'favicon.svg' | asset_url }}">
     <link rel="preconnect" href="https://cdn.shopify.com" crossorigin>
     {{ 'salt-app.css' | asset_url | stylesheet_tag }}
-    {% if "salt-entry-77b3d6733f25.js" != blank %}
-      <link rel="modulepreload" href="{{ "salt-entry-77b3d6733f25.js" | asset_url | split: '?' | first }}" fetchpriority="high">
+    {% if "salt-entry-7d5a57848bfd.js" != blank %}
+      <link rel="modulepreload" href="{{ "salt-entry-7d5a57848bfd.js" | asset_url | split: '?' | first }}" fetchpriority="high">
     {% endif %}
     {% if request.page_type == 'product' and "" != blank %}
       <link rel="modulepreload" href="{{ "" | asset_url | split: '?' | first }}" fetchpriority="high">
@@ -574,13 +574,6 @@
         })();
       </script>
     {% endif %}
-    {% if request.page_type == 'index' %}
-      <script>
-        (function () {
-          window.__SALT_HOME_PREFETCH__ = {"generatedAt":"2026-08-17T09:47:44.478Z","source":"https://vs-future-store-0jl2t-jxu6tnr3.myshopify.com","total":0,"sources":{"bestSellerProducts":"appplaza-best-sellers","quirkyGiftPicks":"gifts","everydayEssentialProducts":"garden-tools"},"bestSellerProducts":[],"quirkyGiftPicks":[],"everydayEssentialProducts":[]};
-        })();
-      </script>
-    {% endif %}
     {% if request.page_type == 'collection' and collection %}
       {% paginate collection.products by 250 %}
         <script>
@@ -654,8 +647,8 @@
         </script>
       {% endpaginate %}
     {% endif %}
-    {% if "salt-entry-77b3d6733f25.js" != blank %}
-      <script type="module" src="{{ "salt-entry-77b3d6733f25.js" | asset_url | split: '?' | first }}"></script>
+    {% if "salt-entry-7d5a57848bfd.js" != blank %}
+      <script type="module" src="{{ "salt-entry-7d5a57848bfd.js" | asset_url | split: '?' | first }}"></script>
     {% else %}
       <script type="module" src="{{ 'salt-app.js' | asset_url }}"></script>
     {% endif %}
