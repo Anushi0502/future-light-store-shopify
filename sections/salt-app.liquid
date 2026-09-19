@@ -14,7 +14,7 @@
   data-currency="{{ cart.currency.iso_code | default: shop.currency | escape }}"
 ></div>
 <script>
-  window.SALT_THEME_BUILD = "mu6obvka";
+  window.SALT_THEME_BUILD = "mu8t3opd";
   window.SALT_FINANCE_API_ORIGIN = "";
   window.SALT_SHOPIFY_APP_KEY = "";
   window.SALT_THEME_ASSET_BASE = {{ 'salt-app.js' | asset_url | split: 'salt-app.js' | first | json }};
@@ -34,11 +34,63 @@
     "/data/product-browse.json": {{ 'data-product-browse.json' | asset_url | json }},
     "/data/product-seo.json": {{ 'data-product-seo.json' | asset_url | json }},
     "/data/products-0001.json": {{ 'data-products-0001.json' | asset_url | json }},
+    "/data/products-0002.json": {{ 'data-products-0002.json' | asset_url | json }},
+    "/data/products-0003.json": {{ 'data-products-0003.json' | asset_url | json }},
+    "/data/products-0004.json": {{ 'data-products-0004.json' | asset_url | json }},
+    "/data/products-0005.json": {{ 'data-products-0005.json' | asset_url | json }},
+    "/data/products-0006.json": {{ 'data-products-0006.json' | asset_url | json }},
+    "/data/products-0007.json": {{ 'data-products-0007.json' | asset_url | json }},
     "/data/product-search-0001.json": {{ 'data-product-search-0001.json' | asset_url | json }},
     "/data/product-search-0002.json": {{ 'data-product-search-0002.json' | asset_url | json }},
     "/data/product-browse-0001.json": {{ 'data-product-browse-0001.json' | asset_url | json }},
     "/data/product-browse-0002.json": {{ 'data-product-browse-0002.json' | asset_url | json }},
-    "/data/product-browse-0003.json": {{ 'data-product-browse-0003.json' | asset_url | json }}
+    "/data/product-browse-0003.json": {{ 'data-product-browse-0003.json' | asset_url | json }},
+    "/data/product-browse-0004.json": {{ 'data-product-browse-0004.json' | asset_url | json }},
+    "/data/product-browse-0005.json": {{ 'data-product-browse-0005.json' | asset_url | json }},
+    "/data/product-browse-0006.json": {{ 'data-product-browse-0006.json' | asset_url | json }},
+    "/data/product-browse-0007.json": {{ 'data-product-browse-0007.json' | asset_url | json }},
+    "/data/product-browse-0008.json": {{ 'data-product-browse-0008.json' | asset_url | json }},
+    "/data/product-browse-0009.json": {{ 'data-product-browse-0009.json' | asset_url | json }},
+    "/data/product-browse-0010.json": {{ 'data-product-browse-0010.json' | asset_url | json }},
+    "/data/product-browse-0011.json": {{ 'data-product-browse-0011.json' | asset_url | json }},
+    "/data/product-browse-0012.json": {{ 'data-product-browse-0012.json' | asset_url | json }},
+    "/data/product-browse-0013.json": {{ 'data-product-browse-0013.json' | asset_url | json }},
+    "/data/product-browse-0014.json": {{ 'data-product-browse-0014.json' | asset_url | json }},
+    "/data/product-browse-0015.json": {{ 'data-product-browse-0015.json' | asset_url | json }},
+    "/data/product-browse-0016.json": {{ 'data-product-browse-0016.json' | asset_url | json }},
+    "/data/product-browse-0017.json": {{ 'data-product-browse-0017.json' | asset_url | json }},
+    "/data/product-browse-0018.json": {{ 'data-product-browse-0018.json' | asset_url | json }},
+    "/data/product-browse-0019.json": {{ 'data-product-browse-0019.json' | asset_url | json }},
+    "/data/product-browse-0020.json": {{ 'data-product-browse-0020.json' | asset_url | json }},
+    "/data/product-browse-0021.json": {{ 'data-product-browse-0021.json' | asset_url | json }},
+    "/data/product-browse-0022.json": {{ 'data-product-browse-0022.json' | asset_url | json }},
+    "/data/product-browse-0023.json": {{ 'data-product-browse-0023.json' | asset_url | json }},
+    "/data/product-browse-0024.json": {{ 'data-product-browse-0024.json' | asset_url | json }},
+    "/data/product-browse-0025.json": {{ 'data-product-browse-0025.json' | asset_url | json }},
+    "/data/product-browse-0026.json": {{ 'data-product-browse-0026.json' | asset_url | json }},
+    "/data/product-browse-0027.json": {{ 'data-product-browse-0027.json' | asset_url | json }},
+    "/data/product-browse-0028.json": {{ 'data-product-browse-0028.json' | asset_url | json }},
+    "/data/product-browse-0029.json": {{ 'data-product-browse-0029.json' | asset_url | json }},
+    "/data/product-browse-0030.json": {{ 'data-product-browse-0030.json' | asset_url | json }},
+    "/data/product-browse-0031.json": {{ 'data-product-browse-0031.json' | asset_url | json }},
+    "/data/product-browse-0032.json": {{ 'data-product-browse-0032.json' | asset_url | json }},
+    "/data/product-browse-0033.json": {{ 'data-product-browse-0033.json' | asset_url | json }},
+    "/data/product-browse-0034.json": {{ 'data-product-browse-0034.json' | asset_url | json }},
+    "/data/product-browse-0035.json": {{ 'data-product-browse-0035.json' | asset_url | json }},
+    "/data/product-browse-0036.json": {{ 'data-product-browse-0036.json' | asset_url | json }},
+    "/data/product-browse-0037.json": {{ 'data-product-browse-0037.json' | asset_url | json }},
+    "/data/product-browse-0038.json": {{ 'data-product-browse-0038.json' | asset_url | json }},
+    "/data/product-browse-0039.json": {{ 'data-product-browse-0039.json' | asset_url | json }},
+    "/data/product-browse-0040.json": {{ 'data-product-browse-0040.json' | asset_url | json }},
+    "/data/product-browse-0041.json": {{ 'data-product-browse-0041.json' | asset_url | json }},
+    "/data/product-browse-0042.json": {{ 'data-product-browse-0042.json' | asset_url | json }},
+    "/data/product-browse-0043.json": {{ 'data-product-browse-0043.json' | asset_url | json }},
+    "/data/product-browse-0044.json": {{ 'data-product-browse-0044.json' | asset_url | json }},
+    "/data/product-browse-0045.json": {{ 'data-product-browse-0045.json' | asset_url | json }},
+    "/data/product-browse-0046.json": {{ 'data-product-browse-0046.json' | asset_url | json }},
+    "/data/product-browse-0047.json": {{ 'data-product-browse-0047.json' | asset_url | json }},
+    "/data/product-browse-0048.json": {{ 'data-product-browse-0048.json' | asset_url | json }},
+    "/data/product-browse-0049.json": {{ 'data-product-browse-0049.json' | asset_url | json }}
   };
 </script>
 {% if request.page_type == 'product' and product %}
