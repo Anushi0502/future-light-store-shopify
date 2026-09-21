@@ -61,9 +61,35 @@
     </div>
   </article>
 {% endif %}
+{% unless request.page_type == 'policy' or request.page_type == 'product' %}
+  {%- comment -%}
+    Keep a small request-time shell visible while the React entry downloads.
+    The app replaces this markup immediately after mounting, but without it
+    Safari can show a completely blank viewport during a slow first load.
+    Native Shopify policy templates and the product fallback intentionally
+    keep their own server-rendered surfaces instead.
+  {%- endcomment -%}
+  <div
+    class="salt-app-loading"
+    role="status"
+    aria-live="polite"
+    style="display:grid;min-height:42vh;place-items:center;padding:3rem 1.25rem;background:#f6f9fc;color:#101522;font-family:Arial,sans-serif;text-align:center"
+  >
+    <div style="display:grid;justify-items:center;gap:.8rem;max-width:28rem">
+      <div style="font-size:.75rem;letter-spacing:.22em;font-weight:700">VS STORE</div>
+      <div style="width:2.5rem;height:2.5rem;border:3px solid #d9e1ec;border-top-color:#1e4fb8;border-radius:999px;animation:salt-app-loading-spin .9s linear infinite" aria-hidden="true"></div>
+      <p style="margin:0;font-size:.95rem;color:#5d6675">Loading your live storefront…</p>
+    </div>
+  </div>
+  <style>
+    @keyframes salt-app-loading-spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+{% endunless %}
 </div>
 <script>
-  window.SALT_THEME_BUILD = "mubv6504";
+  window.SALT_THEME_BUILD = "mubvmapf";
   window.SALT_FINANCE_API_ORIGIN = "";
   window.SALT_SHOPIFY_APP_KEY = "";
   window.SALT_THEME_ASSET_BASE = {{ 'salt-app.js' | asset_url | split: 'salt-app.js' | first | json }};
