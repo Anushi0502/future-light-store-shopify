@@ -12,9 +12,58 @@
   data-judgeme-shop-domain="{{ shop.permanent_domain | escape }}"
   data-judgeme-public-token=""
   data-currency="{{ cart.currency.iso_code | default: shop.currency | escape }}"
-></div>
+>
+{% if request.page_type == 'product' and product %}
+  {%- comment -%}
+    Keep a request-time, no-JavaScript product surface inside the React root.
+    React replaces this markup on a normal visit; crawlers and customers whose
+    scripts are delayed still receive a real title, price, availability, and
+    native Shopify cart form instead of an empty application shell.
+  {%- endcomment -%}
+  {% assign salt_fallback_variant = product.selected_or_first_available_variant %}
+  <article class="salt-product-fallback" aria-label="{{ product.title | escape }}" style="max-width:72rem;margin:0 auto;padding:2rem 1.25rem;font-family:Arial,sans-serif;color:#101522">
+    <nav aria-label="Breadcrumb" style="font-size:.8rem;margin-bottom:1.5rem">
+      <a href="/" style="color:#1e4fb8">VS Store</a>
+      <span aria-hidden="true"> / </span>
+      <span>{{ product.title | escape }}</span>
+    </nav>
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:2rem;align-items:start">
+      {% if product.featured_image %}
+        <img src="{{ product.featured_image | image_url: width: 900 | prepend: 'https:' }}" alt="{{ product.featured_image.alt | default: product.title | escape }}" width="900" height="900" loading="eager" style="width:100%;height:auto;border-radius:1rem" />
+      {% endif %}
+      <div>
+        <p style="font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:#5d6675">{{ product.vendor | default: shop.name | escape }}</p>
+        <h1 style="font-size:clamp(1.75rem,4vw,3rem);line-height:1.05;margin:.5rem 0 1rem">{{ product.title | escape }}</h1>
+        <p style="font-size:1.5rem;font-weight:700;margin:0 0 .75rem">{{ salt_fallback_variant.price | money }}</p>
+        <p style="font-size:.95rem;color:#5d6675">{% if salt_fallback_variant.available %}In stock{% else %}Sold out{% endif %} · 5–8 business days in the United States</p>
+        {% if product.description != blank %}
+          <div style="margin:1.25rem 0;line-height:1.6">{{ product.description | strip_html | truncate: 600 | escape }}</div>
+        {% endif %}
+        <form method="post" action="/cart/add" accept-charset="UTF-8" style="display:grid;gap:.75rem;max-width:28rem">
+          <input type="hidden" name="form_type" value="product" />
+          <input type="hidden" name="utf8" value="✓" />
+          {% if product.has_only_default_variant %}
+            <input type="hidden" name="id" value="{{ salt_fallback_variant.id }}" />
+          {% else %}
+            <label for="salt-fallback-variant" style="font-size:.85rem;font-weight:600">Choose an option</label>
+            <select id="salt-fallback-variant" name="id" style="min-height:2.75rem;padding:.5rem;border:1px solid #c9ced8;border-radius:.65rem">
+              {% for variant in product.variants %}
+                <option value="{{ variant.id }}"{% unless variant.available %} disabled{% endunless %}{% if variant.id == salt_fallback_variant.id %} selected{% endif %}>{{ variant.title | escape }} — {{ variant.price | money }}{% unless variant.available %} — Sold out{% endunless %}</option>
+              {% endfor %}
+            </select>
+          {% endif %}
+          <label for="salt-fallback-quantity" style="font-size:.85rem;font-weight:600">Quantity</label>
+          <input id="salt-fallback-quantity" type="number" name="quantity" min="1" value="1" style="min-height:2.75rem;padding:.5rem;border:1px solid #c9ced8;border-radius:.65rem" />
+          <button type="submit"{% unless salt_fallback_variant.available %} disabled{% endunless %} style="min-height:3rem;border:0;border-radius:.75rem;background:#123f9c;color:#fff;font-weight:700;cursor:pointer">{% if salt_fallback_variant.available %}Add to cart{% else %}Sold out{% endif %}</button>
+        </form>
+        <p style="font-size:.8rem;color:#5d6675;margin-top:1rem">Secure Shopify checkout · 30-day returns</p>
+      </div>
+    </div>
+  </article>
+{% endif %}
+</div>
 <script>
-  window.SALT_THEME_BUILD = "mu8y1enp";
+  window.SALT_THEME_BUILD = "mubr56gu";
   window.SALT_FINANCE_API_ORIGIN = "";
   window.SALT_SHOPIFY_APP_KEY = "";
   window.SALT_THEME_ASSET_BASE = {{ 'salt-app.js' | asset_url | split: 'salt-app.js' | first | json }};

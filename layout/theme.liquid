@@ -206,6 +206,41 @@
                 "priceCurrency": {{ shop.currency | json }},
                 "availability": "{% if salt_selected_variant.available %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}",
                 "itemCondition": "https://schema.org/NewCondition"
+              },
+              "shippingDetails": {
+                "@type": "OfferShippingDetails",
+                "shippingDestination": {
+                  "@type": "DefinedRegion",
+                  "addressCountry": "US"
+                },
+                "shippingRate": {
+                  "@type": "MonetaryAmount",
+                  "value": "0",
+                  "currency": {{ shop.currency | json }}
+                },
+                "deliveryTime": {
+                  "@type": "ShippingDeliveryTime",
+                  "handlingTime": {
+                    "@type": "QuantitativeValue",
+                    "minValue": 1,
+                    "maxValue": 2,
+                    "unitCode": "DAY"
+                  },
+                  "transitTime": {
+                    "@type": "QuantitativeValue",
+                    "minValue": 5,
+                    "maxValue": 8,
+                    "unitCode": "DAY"
+                  }
+                }
+              },
+              "hasMerchantReturnPolicy": {
+                "@type": "MerchantReturnPolicy",
+                "applicableCountry": "US",
+                "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+                "merchantReturnDays": 30,
+                "returnMethod": "https://schema.org/ReturnByMail",
+                "returnFees": "https://schema.org/FreeReturn"
               }
             },
             {
@@ -232,8 +267,8 @@
     <link rel="icon" type="image/svg+xml" href="{{ 'favicon.svg' | asset_url }}">
     <link rel="preconnect" href="https://cdn.shopify.com" crossorigin>
     {{ 'salt-app.css' | asset_url | stylesheet_tag }}
-    {% if "salt-entry-7d5a57848bfd.js" != blank %}
-      <link rel="modulepreload" href="{{ "salt-entry-7d5a57848bfd.js" | asset_url | split: '?' | first }}" fetchpriority="high">
+    {% if "salt-entry-1b0be679e3a6.js" != blank %}
+      <link rel="modulepreload" href="{{ "salt-entry-1b0be679e3a6.js" | asset_url | split: '?' | first }}" fetchpriority="high">
     {% endif %}
     {% if request.page_type == 'product' and "" != blank %}
       <link rel="modulepreload" href="{{ "" | asset_url | split: '?' | first }}" fetchpriority="high">
@@ -647,8 +682,8 @@
         </script>
       {% endpaginate %}
     {% endif %}
-    {% if "salt-entry-7d5a57848bfd.js" != blank %}
-      <script type="module" src="{{ "salt-entry-7d5a57848bfd.js" | asset_url | split: '?' | first }}"></script>
+    {% if "salt-entry-1b0be679e3a6.js" != blank %}
+      <script type="module" src="{{ "salt-entry-1b0be679e3a6.js" | asset_url | split: '?' | first }}"></script>
     {% else %}
       <script type="module" src="{{ 'salt-app.js' | asset_url }}"></script>
     {% endif %}
