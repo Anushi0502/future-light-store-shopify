@@ -35,7 +35,7 @@
         <p style="font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:#5d6675">{{ product.vendor | default: shop.name | escape }}</p>
         <h1 style="font-size:clamp(1.75rem,4vw,3rem);line-height:1.05;margin:.5rem 0 1rem">{{ product.title | escape }}</h1>
         <p style="font-size:1.5rem;font-weight:700;margin:0 0 .75rem">{{ salt_fallback_variant.price | money }}</p>
-        <p style="font-size:.95rem;color:#5d6675">{% if salt_fallback_variant.available %}In stock{% else %}Sold out{% endif %} · 5–8 business days in the United States</p>
+        <p style="font-size:.95rem;color:#5d6675">{% if salt_fallback_variant.available %}In stock{% else %}Sold out{% endif %} · Configured Shopify estimate: 5–8 business days in the United States; final estimate at checkout</p>
         {% if product.description != blank %}
           <div style="margin:1.25rem 0;line-height:1.6">{{ product.description | strip_html | truncate: 600 | escape }}</div>
         {% endif %}
@@ -63,7 +63,7 @@
 {% endif %}
 </div>
 <script>
-  window.SALT_THEME_BUILD = "mubra3du";
+  window.SALT_THEME_BUILD = "mubrei2c";
   window.SALT_FINANCE_API_ORIGIN = "";
   window.SALT_SHOPIFY_APP_KEY = "";
   window.SALT_THEME_ASSET_BASE = {{ 'salt-app.js' | asset_url | split: 'salt-app.js' | first | json }};
