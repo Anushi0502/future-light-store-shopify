@@ -23,7 +23,7 @@
   {% assign salt_fallback_variant = product.selected_or_first_available_variant %}
   <article class="salt-product-fallback" aria-label="{{ product.title | escape }}" style="max-width:72rem;margin:0 auto;padding:2rem 1.25rem;font-family:Arial,sans-serif;color:#101522">
     <nav aria-label="Breadcrumb" style="font-size:.8rem;margin-bottom:1.5rem">
-      <a href="/" style="color:#1e4fb8">VS Store</a>
+      <a href="{{ routes.root_url }}" style="color:#1e4fb8">VS Store</a>
       <span aria-hidden="true"> / </span>
       <span>{{ product.title | escape }}</span>
     </nav>
@@ -39,7 +39,7 @@
         {% if product.description != blank %}
           <div style="margin:1.25rem 0;line-height:1.6">{{ product.description | strip_html | truncate: 600 | escape }}</div>
         {% endif %}
-        <form method="post" action="/cart/add" accept-charset="UTF-8" style="display:grid;gap:.75rem;max-width:28rem">
+        <form method="post" action="{{ routes.cart_add_url }}" accept-charset="UTF-8" style="display:grid;gap:.75rem;max-width:28rem">
           <input type="hidden" name="form_type" value="product" />
           <input type="hidden" name="utf8" value="✓" />
           {% if product.has_only_default_variant %}
@@ -63,7 +63,7 @@
 {% endif %}
 </div>
 <script>
-  window.SALT_THEME_BUILD = "mubr56gu";
+  window.SALT_THEME_BUILD = "mubra3du";
   window.SALT_FINANCE_API_ORIGIN = "";
   window.SALT_SHOPIFY_APP_KEY = "";
   window.SALT_THEME_ASSET_BASE = {{ 'salt-app.js' | asset_url | split: 'salt-app.js' | first | json }};
