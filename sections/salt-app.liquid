@@ -1,3 +1,14 @@
+{% if request.page_type == 'page' and page.handle %}
+<script>
+  (function () {
+    var routeAliases = {"vs-app-about":"/about","vs-app-offers":"/offers","vs-app-auth":"/auth","vs-app-wishlist":"/wishlist","vs-app-orders":"/orders","vs-app-track-order":"/track-order","vs-app-help":"/help","vs-app-policies":"/policies","vs-app-policy-shipping":"/policies/shipping","vs-app-policy-returns":"/policies/returns","vs-app-policy-privacy":"/policies/privacy","vs-app-policy-terms":"/policies/terms","vs-app-policy-contact":"/policies/contact"};
+    var pageHandle = {{ page.handle | json }};
+    var cleanPath = routeAliases[pageHandle];
+    if (!cleanPath || window.location.pathname !== "/pages/" + pageHandle) return;
+    window.history.replaceState(null, document.title, cleanPath + window.location.search + window.location.hash);
+  })();
+</script>
+{% endif %}
 {% if request.page_type == 'product' and product %}
 <s-view-event
   view-event-trigger="connect"
@@ -89,7 +100,7 @@
 {% endunless %}
 </div>
 <script>
-  window.SALT_THEME_BUILD = "muc0ix4x";
+  window.SALT_THEME_BUILD = "muc0thui";
   window.SALT_FINANCE_API_ORIGIN = "";
   window.SALT_SHOPIFY_APP_KEY = "";
   window.SALT_THEME_ASSET_BASE = {{ 'salt-app.js' | asset_url | split: 'salt-app.js' | first | json }};
