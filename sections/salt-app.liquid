@@ -109,6 +109,32 @@
     "/brand-salt-logo.png": {{ 'future-light-logo.svg' | asset_url | json }},
   };
 </script>
+<script>
+  (() => {
+    const from = 'Free standard US shipping · 5–8 business days';
+    const to = 'Free standard US shipping · 5–8 business days after dispatch; allow 1–2 business days for processing (about 6–10 business days total)';
+    const root = document.getElementById('root');
+    if (!root) return;
+    const patchNode = (node) => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        if (node.nodeValue.includes(from)) node.nodeValue = node.nodeValue.replaceAll(from, to);
+        return;
+      }
+      const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT);
+      let textNode;
+      while ((textNode = walker.nextNode())) {
+        if (textNode.nodeValue.includes(from)) textNode.nodeValue = textNode.nodeValue.replaceAll(from, to);
+      }
+    };
+    patchNode(root);
+    new MutationObserver((records) => {
+      for (const record of records) {
+        if (record.type === 'characterData') patchNode(record.target);
+        else for (const node of record.addedNodes) patchNode(node);
+      }
+    }).observe(root, { subtree: true, childList: true, characterData: true });
+  })();
+</script>
 {% if request.page_type == 'product' and product %}
 </s-view-event>
 {% endif %}
