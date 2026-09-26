@@ -117,13 +117,13 @@
     if (!root) return;
     const patchNode = (node) => {
       if (node.nodeType === Node.TEXT_NODE) {
-        if (node.nodeValue.includes(from)) node.nodeValue = node.nodeValue.replaceAll(from, to);
+        if (node.nodeValue.includes(from) && !node.nodeValue.includes(to)) node.nodeValue = node.nodeValue.replaceAll(from, to);
         return;
       }
       const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT);
       let textNode;
       while ((textNode = walker.nextNode())) {
-        if (textNode.nodeValue.includes(from)) textNode.nodeValue = textNode.nodeValue.replaceAll(from, to);
+        if (textNode.nodeValue.includes(from) && !textNode.nodeValue.includes(to)) textNode.nodeValue = textNode.nodeValue.replaceAll(from, to);
       }
     };
     patchNode(root);
