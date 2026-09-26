@@ -1,0 +1,205 @@
+<script>
+  (function () {
+    if (window.__vsStoreProductNavigationGuard) return;
+    window.__vsStoreProductNavigationGuard = true;
+    var productPath = new RegExp("^/(?:[a-z]{2}(?:-[a-z]{2})?/)?products/[^/]+/?$", "i");
+    ["pushState", "replaceState"].forEach(function (method) {
+      var original = window.history[method];
+      window.history[method] = function () {
+        var targetUrl = arguments[2];
+        if (targetUrl !== undefined && targetUrl !== null) {
+          try {
+            var target = new URL(targetUrl, window.location.href);
+            if (target.pathname !== window.location.pathname &&
+                (productPath.test(window.location.pathname) || productPath.test(target.pathname))) {
+              window.location.assign(target.href);
+              return;
+            }
+          } catch (_error) {
+            // Preserve ordinary navigation for non-URL history values.
+          }
+        }
+        return original.apply(this, arguments);
+      };
+    });
+  })();
+</script>
+{% if request.page_type == 'product' and product %}
+<style>
+  #vs-judgeme-widget-staging {
+    position: absolute !important;
+    left: -10000px !important;
+    top: 0 !important;
+    width: min(100%, 1200px) !important;
+    max-width: 1200px !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+  .vs-pdp-info-tabs { min-width: 0; }
+  .vs-pdp-info-tablist {
+    display: flex;
+    gap: 1.5rem;
+    border-bottom: 1px solid #dbe2ec;
+  }
+  .vs-pdp-info-tab {
+    min-height: 3rem;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    padding: .75rem .1rem;
+    background: transparent;
+    color: #667085;
+    font: inherit;
+    font-size: .875rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .vs-pdp-info-tab[aria-selected="true"] { border-bottom-color: #1749b8; color: #111827; }
+  .vs-pdp-info-tab:hover { color: #111827; }
+  .vs-pdp-info-tab:focus-visible { outline: 2px solid #1749b8; outline-offset: 3px; border-radius: .25rem; }
+  .vs-pdp-info-panel { min-width: 0; padding-top: 1.25rem; }
+  #vs-pdp-details-panel[hidden], .vs-pdp-info-panel[hidden] { display: none !important; }
+</style>
+<div id="vs-judgeme-widget-staging" aria-hidden="true" inert>
+  <!-- Start of Judge.me code -->
+  {% assign has_legacy = false %}
+  {% if product.metafields.judgeme.widget.size > 20 %}{% assign has_legacy = true %}{% endif %}
+  <div style="clear:both"></div>
+  <div id="judgeme_product_reviews" class="jdgm-widget jdgm-review-widget" data-product-title="{{ product.title | escape }}" data-id="{{ product.id }}" data-product-id="{{ product.id }}" data-widget="review" data-auto-install="false" data-shop-reviews-count="{{ shop.metafields.judgeme.shop_reviews_count | default: 0 | escape }}" data-entry-point="review_widget.js" data-entry-key="review-widget/main.js">
+    {% if has_legacy %}<div class="jdgm-legacy-widget-content" style="display:none">{{ product.metafields.judgeme.widget }}</div>{% endif %}
+  </div>
+  {% if product.metafields.judgeme.review_widget_data %}
+    <script>
+      window.jdgm = window.jdgm || {};
+      window.jdgm.data = window.jdgm.data || {};
+      window.jdgm.data.reviewWidget = window.jdgm.data.reviewWidget || {};
+      window.jdgm.data.reviewWidget[{{ product.id }}] = {{ product.metafields.judgeme.review_widget_data }}
+    </script>
+  {% endif %}
+  <!-- End of Judge.me code -->
+</div>
+<script>
+  (function () {
+    var root = document.getElementById("root");
+    if (!root) return;
+
+    function installReviewTabs() {
+      if (root.querySelector("#vs-pdp-info-tabs")) return true;
+      var description = root.querySelector('[aria-label="Product description"]');
+      var addButton = Array.prototype.slice.call(root.querySelectorAll("button")).find(function (button) {
+        return /^(Add to cart|Sold out)$/.test((button.textContent || "").trim());
+      });
+      var actionRow = addButton && addButton.parentElement;
+      var productColumn = description
+        ? description.parentElement
+        : actionRow && actionRow.parentElement;
+      if (!productColumn) return false;
+
+      var before = description || (actionRow && actionRow.nextElementSibling);
+      if (before && before.parentElement !== productColumn) before = null;
+
+      var tabs = document.createElement("div");
+      tabs.id = "vs-pdp-info-tabs";
+      tabs.className = "vs-pdp-info-tabs";
+      tabs.setAttribute("aria-label", "Product information and reviews");
+      var tabList = document.createElement("div");
+      tabList.className = "vs-pdp-info-tablist";
+      tabList.setAttribute("role", "tablist");
+      tabList.setAttribute("aria-label", "Product information");
+
+      function createTab(id, label) {
+        var tab = document.createElement("button");
+        tab.type = "button";
+        tab.id = id;
+        tab.className = "vs-pdp-info-tab";
+        tab.setAttribute("role", "tab");
+        tab.setAttribute("aria-controls", id === "vs-pdp-details-tab"
+          ? "vs-pdp-details-panel"
+          : "vs-pdp-reviews-panel");
+        tab.textContent = label;
+        return tab;
+      }
+
+      var detailsTab = createTab("vs-pdp-details-tab", "Details");
+      var reviewsTab = createTab("vs-pdp-reviews-tab", "Reviews");
+      tabList.append(detailsTab, reviewsTab);
+      tabs.appendChild(tabList);
+
+      var detailsPanel = description;
+      if (detailsPanel) {
+        detailsPanel.id = "vs-pdp-details-panel";
+        detailsPanel.setAttribute("role", "tabpanel");
+        detailsPanel.setAttribute("aria-labelledby", detailsTab.id);
+        detailsPanel.tabIndex = 0;
+        detailsPanel.style.paddingTop = "1.25rem";
+      } else {
+        detailsPanel = document.createElement("div");
+        detailsPanel.id = "vs-pdp-details-panel";
+        detailsPanel.className = "vs-pdp-info-panel";
+        detailsPanel.setAttribute("role", "tabpanel");
+        detailsPanel.setAttribute("aria-labelledby", detailsTab.id);
+        detailsPanel.tabIndex = 0;
+        detailsPanel.textContent = "Product details are not available yet.";
+      }
+
+      var reviewsPanel = document.createElement("div");
+      reviewsPanel.id = "vs-pdp-reviews-panel";
+      reviewsPanel.className = "vs-pdp-info-panel";
+      reviewsPanel.setAttribute("role", "tabpanel");
+      reviewsPanel.setAttribute("aria-labelledby", reviewsTab.id);
+      reviewsPanel.tabIndex = 0;
+      reviewsPanel.hidden = true;
+
+      productColumn.insertBefore(tabs, before || null);
+      if (!description) productColumn.insertBefore(detailsPanel, before || null);
+      productColumn.insertBefore(reviewsPanel, detailsPanel.nextSibling);
+
+      function activate(index, moveFocus) {
+        var showReviews = index === 1;
+        detailsTab.setAttribute("aria-selected", String(!showReviews));
+        reviewsTab.setAttribute("aria-selected", String(showReviews));
+        detailsTab.tabIndex = showReviews ? -1 : 0;
+        reviewsTab.tabIndex = showReviews ? 0 : -1;
+        detailsPanel.hidden = showReviews;
+        reviewsPanel.hidden = !showReviews;
+        if (moveFocus) (showReviews ? reviewsTab : detailsTab).focus();
+        if (!showReviews) return;
+
+        var staging = document.getElementById("vs-judgeme-widget-staging");
+        var widget = staging && staging.querySelector("#judgeme_product_reviews");
+        if (widget) {
+          reviewsPanel.appendChild(widget);
+          staging.remove();
+          window.dispatchEvent(new Event("resize"));
+        }
+      }
+
+      detailsTab.setAttribute("aria-selected", "true");
+      reviewsTab.setAttribute("aria-selected", "false");
+      detailsTab.tabIndex = 0;
+      reviewsTab.tabIndex = -1;
+      detailsTab.addEventListener("click", function () { activate(0, false); });
+      reviewsTab.addEventListener("click", function () { activate(1, false); });
+      tabList.addEventListener("keydown", function (event) {
+        var nextIndex = null;
+        if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
+          nextIndex = reviewsTab.getAttribute("aria-selected") === "true" ? 0 : 1;
+        }
+        if (event.key === "Home") nextIndex = 0;
+        if (event.key === "End") nextIndex = 1;
+        if (nextIndex === null) return;
+        event.preventDefault();
+        activate(nextIndex, true);
+      });
+      return true;
+    }
+
+    if (installReviewTabs()) return;
+    var observer = new MutationObserver(function () {
+      if (installReviewTabs()) observer.disconnect();
+    });
+    observer.observe(root, { childList: true, subtree: true });
+    window.setTimeout(function () { observer.disconnect(); }, 15000);
+  })();
+</script>
+{% endif %}

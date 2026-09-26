@@ -1,0 +1,1 @@
+var e={label:`US standard shipping`,cost:`Free`,estimate:`5–8 business days`,summary:`Free standard US shipping · 5–8 business days`};export{e as t};
