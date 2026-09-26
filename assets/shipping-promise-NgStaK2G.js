@@ -1,0 +1,1 @@
+var e={label:`US standard shipping`,cost:`Free`,estimate:`5–8 business days after dispatch`,processing:`1–2 business days`,summary:`Free standard US shipping · 5–8 business days after dispatch; allow 1–2 business days for processing (about 6–10 business days total)`};export{e as t};
