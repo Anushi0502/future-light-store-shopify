@@ -111,19 +111,22 @@
 </script>
 <script>
   (() => {
-    const from = 'Free standard US shipping · 5–8 business days';
-    const to = 'Free standard US shipping · 5–8 business days after dispatch; allow 1–2 business days for processing (about 6–10 business days total)';
+    const replacements = [
+      ['Free standard US shipping · 5–8 business days', 'Free standard US shipping · 5–8 business days after dispatch; allow 1–2 business days for processing (about 6–10 business days total)'],
+      ['estimated 5–8 business days delivery window', 'estimated 5–8 business days after dispatch'],
+    ];
     const root = document.getElementById('root');
     if (!root) return;
+    const patchText = (value) => replacements.reduce((text, [from, to]) => text.includes(from) && !text.includes(to) ? text.replaceAll(from, to) : text, value);
     const patchNode = (node) => {
       if (node.nodeType === Node.TEXT_NODE) {
-        if (node.nodeValue.includes(from) && !node.nodeValue.includes(to)) node.nodeValue = node.nodeValue.replaceAll(from, to);
+        node.nodeValue = patchText(node.nodeValue);
         return;
       }
       const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT);
       let textNode;
       while ((textNode = walker.nextNode())) {
-        if (textNode.nodeValue.includes(from) && !textNode.nodeValue.includes(to)) textNode.nodeValue = textNode.nodeValue.replaceAll(from, to);
+        textNode.nodeValue = patchText(textNode.nodeValue);
       }
     };
     patchNode(root);
