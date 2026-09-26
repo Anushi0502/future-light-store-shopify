@@ -118,15 +118,19 @@
     const root = document.getElementById('root');
     if (!root) return;
     const patchText = (value) => replacements.reduce((text, [from, to]) => text.includes(from) && !text.includes(to) ? text.replaceAll(from, to) : text, value);
+    const updateTextNode = (node) => {
+      const next = patchText(node.nodeValue);
+      if (next !== node.nodeValue) node.nodeValue = next;
+    };
     const patchNode = (node) => {
       if (node.nodeType === Node.TEXT_NODE) {
-        node.nodeValue = patchText(node.nodeValue);
+        updateTextNode(node);
         return;
       }
       const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT);
       let textNode;
       while ((textNode = walker.nextNode())) {
-        textNode.nodeValue = patchText(textNode.nodeValue);
+        updateTextNode(textNode);
       }
     };
     patchNode(root);
