@@ -101,7 +101,7 @@
 </div>
 {% render 'vs-judgeme-pdp-tabs' %}
 <script>
-  window.SALT_THEME_BUILD = "muk4t5c4";
+  window.SALT_THEME_BUILD = "muke2k4y";
   window.SALT_FINANCE_API_ORIGIN = "";
   window.SALT_SHOPIFY_APP_KEY = "";
   window.SALT_THEME_ASSET_BASE = {{ 'salt-app.js' | asset_url | split: 'salt-app.js' | first | json }};
@@ -109,48 +109,6 @@
     "/brand/salt-logo.png": {{ 'future-light-logo.svg' | asset_url | json }},
     "/brand-salt-logo.png": {{ 'future-light-logo.svg' | asset_url | json }},
   };
-</script>
-<script>
-  (() => {
-    const themeBase = window.SALT_THEME_ASSET_BASE;
-    if (typeof themeBase !== 'string' || !themeBase) return;
-    const absoluteBase = themeBase.startsWith('//') ? `${window.location.protocol}${themeBase}` : themeBase;
-    const assetPattern = /(^|[\s,("'])\/assets\/([^\s,")']+)/g;
-    const selectors = '[src], [srcset], [data-src], [data-srcset], [poster], [style]';
-    const rewriteValue = (value) => value.replace(assetPattern, (_match, prefix, path) => {
-      try {
-        return `${prefix}${new URL(path, absoluteBase).href}`;
-      } catch {
-        return `${prefix}/assets/${path}`;
-      }
-    });
-    const patchElement = (element) => {
-      if (!(element instanceof Element)) return;
-      for (const attribute of ['src', 'srcset', 'data-src', 'data-srcset', 'poster', 'style']) {
-        const value = element.getAttribute(attribute);
-        if (!value) continue;
-        const next = rewriteValue(value);
-        if (next !== value) element.setAttribute(attribute, next);
-      }
-    };
-    const visit = (node) => {
-      if (!(node instanceof Element)) return;
-      patchElement(node);
-      node.querySelectorAll(selectors).forEach(patchElement);
-    };
-    visit(document.documentElement);
-    new MutationObserver((records) => {
-      for (const record of records) {
-        if (record.type === 'attributes') patchElement(record.target);
-        else record.addedNodes.forEach(visit);
-      }
-    }).observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['src', 'srcset', 'data-src', 'data-srcset', 'poster', 'style'],
-      childList: true,
-      subtree: true,
-    });
-  })();
 </script>
 <script>
   (() => {
