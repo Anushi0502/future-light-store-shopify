@@ -80,26 +80,9 @@
     {% endif %}
 
     {% if request.page_type == 'product' and product %}
-      {%- comment -%}
-        Build PDP metadata from the actual product record at render time. Strip
-        the repeated heading and generic filler from the HTML description so
-        search snippets describe the item itself rather than exposing editor
-        scaffolding. The selected variant is appended only when it is real.
-      {%- endcomment -%}
       {% assign salt_selected_variant = product.selected_or_first_available_variant %}
-      {% assign salt_variant_label = salt_selected_variant.title | default: '' | strip %}
-      {% assign salt_product_detail = product.description | split: 'Key Details' | first %}
-      {% assign salt_product_detail = salt_product_detail | strip_html | strip_newlines | remove: 'About' | remove: product.title | remove: 'serves the specific function identified by its handle and confirmed product details.' | remove: 'Confirmed product facts and available options help shoppers compare it for the intended task.' | replace: ' — ', ' ' | replace: '  ', ' ' | strip | truncate: 95 %}
-      {% assign salt_seo_description = 'Shop ' | append: product.title | append: ' at Future Light Store.' %}
-      {% if salt_product_detail != blank %}
-        {% assign salt_seo_description = salt_seo_description | append: ' ' | append: salt_product_detail %}
-      {% else %}
-        {% assign salt_seo_description = salt_seo_description | append: ' Review the product details, options and current availability before ordering.' %}
-      {% endif %}
-      {% unless salt_variant_label == blank or salt_variant_label == 'Default Title' %}
-        {% assign salt_seo_title = product.title | append: ' - ' | append: salt_variant_label | append: ' | Future Light Store' %}
-        {% assign salt_seo_description = salt_seo_description | append: ' Selected option: ' | append: salt_variant_label | append: '.' %}
-      {% endunless %}
+      {% assign salt_seo_title = page_title | default: product.title %}
+      {% assign salt_seo_description = page_description | default: product.description | default: shop.description %}
       {% assign salt_seo_description = salt_seo_description | strip_html | strip_newlines | replace: '  ', ' ' | strip | truncate: 158 %}
     {% endif %}
 
