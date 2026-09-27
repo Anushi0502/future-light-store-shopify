@@ -81,8 +81,8 @@
 
     {% if request.page_type == 'product' and product %}
       {% assign salt_selected_variant = product.selected_or_first_available_variant %}
-      {% assign salt_seo_title = page_title | default: product.title %}
-      {% assign salt_seo_description = page_description | default: product.description | default: shop.description %}
+      {% assign salt_seo_title = product.metafields.global.title_tag.value | default: page_title | default: product.title %}
+      {% assign salt_seo_description = product.metafields.global.description_tag.value | default: page_description | default: product.description | default: shop.description %}
       {% assign salt_seo_description = salt_seo_description | strip_html | strip_newlines | replace: '  ', ' ' | strip | truncate: 158 %}
     {% endif %}
 
