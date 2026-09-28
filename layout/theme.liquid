@@ -250,9 +250,7 @@
     <link rel="icon" type="image/svg+xml" href="{{ 'favicon.svg' | asset_url }}">
     <link rel="preconnect" href="https://cdn.shopify.com" crossorigin>
     {{ 'salt-app.css' | asset_url | stylesheet_tag }}
-    {% if "salt-entry-mukgndaz.js" != blank %}
-      <link rel="modulepreload" href="{{ "salt-entry-mukgndaz.js" | asset_url | split: '?' | first }}" fetchpriority="high">
-    {% endif %}
+    <link rel="modulepreload" href="{{ 'salt-app.js' | asset_url | split: '?' | first }}" fetchpriority="high">
     {% if request.page_type == 'product' and "" != blank %}
       <link rel="modulepreload" href="{{ "" | asset_url | split: '?' | first }}" fetchpriority="high">
     {% elsif request.page_type == 'index' and "" != blank %}
@@ -665,11 +663,7 @@
         </script>
       {% endpaginate %}
     {% endif %}
-    {% if "salt-entry-mukgndaz.js" != blank %}
-      <script type="module" src="{{ "salt-entry-mukgndaz.js" | asset_url | split: '?' | first }}"></script>
-    {% else %}
-      <script type="module" src="{{ 'salt-app.js' | asset_url }}"></script>
-    {% endif %}
+    <script type="module" src="{{ 'salt-app.js' | asset_url }}"></script>
   </head>
   <body>
     {{ content_for_layout }}
