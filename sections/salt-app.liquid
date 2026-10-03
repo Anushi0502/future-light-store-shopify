@@ -14,6 +14,27 @@
   view-event-trigger="connect"
   view-event-payload='{{ product | standard_event_data: "view", context: "page" | escape }}'
 >
+<script id="vs-shopify-product-media" type="application/json">
+  {%- capture vs_variant_media_json -%}
+    {
+      "id": {{ product.id | json }},
+      "handle": {{ product.handle | json }},
+      "variant_count": {{ product.variants_count | json }},
+      "variants": [
+        {%- for variant in product.variants -%}
+          {
+            "id": {{ variant.id | json }},
+            "featured_image": {% if variant.featured_image %}{
+              "id": {{ variant.featured_image.id | json }},
+              "src": {{ variant.featured_image | image_url: width: 1200 | json }}
+            }{% else %}null{% endif %}
+          }{% unless forloop.last %},{% endunless %}
+        {%- endfor -%}
+      ]
+    }
+  {%- endcapture -%}
+  {{- vs_variant_media_json -}}
+</script>
 {% endif %}
 <div
   id="root"
@@ -40,13 +61,13 @@
     </nav>
     <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:2rem;align-items:start">
       {% if product.featured_image %}
-        <img src="{{ product.featured_image | image_url: width: 900 | prepend: 'https:' }}" alt="{{ product.featured_image.alt | default: product.title | escape }}" width="900" height="900" loading="eager" style="width:100%;height:auto;border-radius:1rem" />
+        <img id="salt-fallback-product-image" src="{{ product.featured_image | image_url: width: 900 | prepend: 'https:' }}" alt="{{ product.featured_image.alt | default: product.title | escape }}" width="900" height="900" loading="eager" style="width:100%;height:auto;border-radius:1rem" />
       {% endif %}
       <div>
         <p style="font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:#5d6675">{{ product.vendor | default: shop.name | escape }}</p>
         <h1 style="font-size:clamp(1.75rem,4vw,3rem);line-height:1.05;margin:.5rem 0 1rem">{{ product.title | escape }}</h1>
-        <p style="font-size:1.5rem;font-weight:700;margin:0 0 .75rem">{{ salt_fallback_variant.price | money }}</p>
-        <p style="font-size:.95rem;color:#5d6675">{% if salt_fallback_variant.available %}In stock{% else %}Sold out{% endif %} · Free standard US shipping: 5–8 business days after dispatch; allow 1–2 business days for processing (about 6–10 business days total). Final options confirmed at checkout.</p>
+        <p style="font-size:1.5rem;font-weight:700;margin:0 0 .75rem"><span id="salt-fallback-price">{{ salt_fallback_variant.price | money }}</span></p>
+        <p style="font-size:.95rem;color:#5d6675"><span id="salt-fallback-availability">{% if salt_fallback_variant.available %}In stock{% else %}Sold out{% endif %}</span> · Free standard US shipping: 5–8 business days after dispatch; allow 1–2 business days for processing (about 6–10 business days total). Final options confirmed at checkout.</p>
         {% if product.description != blank %}
           <div style="margin:1.25rem 0;line-height:1.6">{{ product.description | strip_html | truncate: 600 | escape }}</div>
         {% endif %}
@@ -59,7 +80,8 @@
             <label for="salt-fallback-variant" style="font-size:.85rem;font-weight:600">Choose an option</label>
             <select id="salt-fallback-variant" name="id" style="min-height:2.75rem;padding:.5rem;border:1px solid #c9ced8;border-radius:.65rem">
               {% for variant in product.variants %}
-                <option value="{{ variant.id }}"{% unless variant.available %} disabled{% endunless %}{% if variant.id == salt_fallback_variant.id %} selected{% endif %}>{{ variant.title | escape }} — {{ variant.price | money }}{% unless variant.available %} — Sold out{% endunless %}</option>
+                {% assign salt_fallback_variant_label = variant.title | replace: 'TK-000000', 'Design code ' | replace: ' / ', ' · ' | replace: 'x', ' × ' %}
+                <option value="{{ variant.id }}" data-price="{{ variant.price | money | strip_html | escape }}" data-available="{{ variant.available }}"{% if variant.featured_image %} data-image="{{ variant.featured_image | image_url: width: 900 | prepend: 'https:' | escape }}" data-image-alt="{{ variant.featured_image.alt | default: variant.title | escape }}"{% endif %}{% unless variant.available %} disabled{% endunless %}{% if variant.id == salt_fallback_variant.id %} selected{% endif %}>{{ salt_fallback_variant_label | escape }} — {{ variant.price | money }}{% unless variant.available %} — Sold out{% endunless %}</option>
               {% endfor %}
             </select>
           {% endif %}
@@ -71,6 +93,30 @@
       </div>
     </div>
   </article>
+  <script>
+    (() => {
+      const select = document.getElementById('salt-fallback-variant');
+      if (!select) return;
+      select.addEventListener('change', () => {
+        const option = select.selectedOptions[0];
+        const image = document.getElementById('salt-fallback-product-image');
+        const price = document.getElementById('salt-fallback-price');
+        const availability = document.getElementById('salt-fallback-availability');
+        const submit = select.closest('form')?.querySelector('button[type="submit"]');
+        if (option.dataset.image && image) {
+          image.src = option.dataset.image;
+          image.alt = option.dataset.imageAlt || {{ product.title | json }};
+        }
+        if (option.dataset.price && price) price.textContent = option.dataset.price;
+        const available = option.dataset.available === 'true';
+        if (availability) availability.textContent = available ? 'In stock' : 'Sold out';
+        if (submit) {
+          submit.disabled = !available;
+          submit.textContent = available ? 'Add to cart' : 'Sold out';
+        }
+      });
+    })();
+  </script>
 {% endif %}
 {% unless request.page_type == 'policy' or request.page_type == 'product' %}
   {%- comment -%}
@@ -101,13 +147,15 @@
 </div>
 {% render 'vs-judgeme-pdp-tabs' %}
 <script>
-  window.SALT_THEME_BUILD = "mukkp0dt";
+  window.SALT_THEME_BUILD = "murnjobf";
   window.SALT_FINANCE_API_ORIGIN = "";
   window.SALT_SHOPIFY_APP_KEY = "";
   window.SALT_THEME_ASSET_BASE = {{ 'salt-app.js' | asset_url | split: 'salt-app.js' | first | json }};
+  window.VS_STORE_LOGO_URL = {{ 'vs-store-brand-mark.png' | asset_url | json }};
   window.SALT_THEME_ASSETS = {
-    "/brand/salt-logo.png": {{ 'future-light-logo.svg' | asset_url | json }},
-    "/brand-salt-logo.png": {{ 'future-light-logo.svg' | asset_url | json }},
+    "/brand/vs-store-brand-mark.png": {{ 'vs-store-brand-mark.png' | asset_url | json }},
+    "/brand/salt-logo.png": {{ 'vs-store-brand-mark.png' | asset_url | json }},
+    "/brand-salt-logo.png": {{ 'vs-store-brand-mark.png' | asset_url | json }},
   };
 </script>
 <script>
