@@ -70,6 +70,11 @@
         "type": "shopify://apps/judge-me-reviews/blocks/judgeme_core/61ccd3b1-a9f2-4160-9fe9-4fec8413e5d8",
         "disabled": false,
         "settings": {}
+      },
+      "12318114026695823084": {
+        "type": "shopify://apps/yeps/blocks/yeps/e514c124-b6d8-42cf-8001-0defa550f08e",
+        "disabled": false,
+        "settings": {}
       }
     }
   }
